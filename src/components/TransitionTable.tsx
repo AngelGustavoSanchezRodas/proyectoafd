@@ -19,7 +19,7 @@ export default function TransitionTable({ dfa, simulation }: TransitionTableProp
             <th className="px-6 py-3 font-bold">Estado</th>
             {dfa.symbols.map((sym) => (
               <th key={sym} className="px-6 py-3 text-center font-bold">
-                Leé '{sym}'
+                Lee &apos;{sym}&apos;
               </th>
             ))}
           </tr>
