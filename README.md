@@ -1,37 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Prompt Maestro AFD
 
-## Getting Started
+Plataforma web interactiva para la simulación, análisis paso a paso y visualización gráfica de **Autómatas Finitos Deterministas (AFD)**.
 
-First, run the development server:
+Permite cargar la definición formal de un AFD mediante archivos de texto (`.txt`), generar automáticamente su diagrama visual en lenguaje DOT con **Graphviz** (vía WebAssembly), explorar la tabla de transiciones y ejecutar o retroceder la lectura de cadenas símbolo a símbolo (*Time-Travel*).
+
+---
+
+## Requisitos Previos
+
+Asegúrate de contar con lo siguiente instalado en tu sistema:
+
+- **[Node.js](https://nodejs.org/)** (v20.x o superior recomendado)
+- **[Git](https://git-scm.com/)**
+- **[pnpm](https://pnpm.io/)** (gestor recomendado, v9 o superior) o alternativamente **npm** / **yarn**
+
+---
+
+## Pasos para Clonar y Encender el Proyecto
+
+### 1. Clonar el Repositorio
+
+Abre una terminal y clona el proyecto desde GitHub:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/AngelGustavoSanchezRodas/ProyectoAFD.git
+cd ProyectoAFD
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Instalar Dependencias
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Instala los paquetes del proyecto usando tu gestor preferido (se recomienda `pnpm`):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm install
+```
 
-## Learn More
+> *Si utilizas `npm`, ejecuta `npm install`.*
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Encender el Servidor de Desarrollo
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Inicia el entorno de desarrollo local con soporte de Turbopack:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
 
-## Deploy on Vercel
+> *Si utilizas `npm`, ejecuta `npm run dev`.*
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4. Abrir en el Navegador
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# ProyectoAFD
+Una vez que la terminal indique que el servidor está listo, abre tu navegador e ingresa a:
+
+**[http://localhost:3000](http://localhost:3000)**
+
+---
+
+## Scripts Disponibles
+
+| Comando | Descripción |
+| :--- | :--- |
+| `pnpm dev` | Inicia el servidor de desarrollo en `http://localhost:3000`. |
+| `pnpm test` | Ejecuta las pruebas unitarias del motor AFD con Vitest. |
+| `pnpm test:ui` | Abre la interfaz gráfica interactiva de pruebas de Vitest. |
+| `pnpm build` | Compila y optimiza la aplicación para producción. |
+| `pnpm start` | Inicia el servidor de producción (requiere previo `pnpm build`). |
+| `pnpm lint` | Ejecuta ESLint para verificar el estilo y sintaxis del código. |
+
+---
+
+## Formato del Archivo de Entrada (`.txt`)
+
+El sistema procesa archivos de texto con la definición formal del autómata y las cadenas a validar:
+
+```text
+Simbolos: 0,1
+Estados: Q0,Q1,Q2,Q3
+Estado inicial: Q0
+Estados de aceptación: Q0
+Transiciones:
+Q2,Q1
+Q3,Q0
+Q0,Q3
+Q1,Q2
+Cadenas a analizar:
+1,0,0,1
+0,0,1,0,1
+```
+
+---
+
+## Tecnologías Utilizadas
+
+- **Framework Web:** [Next.js](https://nextjs.org/) (App Router & Turbopack)
+- **Lenguaje:** [TypeScript](https://www.typescriptlang.org/)
+- **Librería de Interfaz:** [React](https://react.dev/)
+- **Estilos:** [Tailwind CSS](https://tailwindcss.com/)
+- **Renderizado Gráfico:** [@hpcc-js/wasm](https://github.com/hpcc-systems/hpcc-js-wasm) (Graphviz WebAssembly)
+- **Testing:** [Vitest](https://vitest.dev/)
