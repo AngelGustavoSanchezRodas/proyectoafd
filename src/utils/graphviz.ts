@@ -1,10 +1,7 @@
 // src/utils/graphviz.ts
 import { DFA, SimulationState } from '../types/dfa';
 
-/**
- * Genera el código en lenguaje DOT para renderizar el grafo con Graphviz.
- */
-export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA | null): string {
+export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA | null, isDarkMode: boolean = false): string {
   const dfa = simulation?.dfa || baseDfa;
   if (!dfa) return '';
 
@@ -12,36 +9,38 @@ export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA
   const currentState = currentStep?.currentState;
   const activeTransition = currentStep?.transitionUsed;
 
-  let dot = 'digraph DFA {\n';
-  dot += '  rankdir=LR;\n'; // Orientación de izquierda a derecha
-  dot += '  node [fontname="Arial", fontsize=12];\n';
-  dot += '  edge [fontname="Arial", fontsize=10];\n\n';
+  // Paletas de color dinámicas según el tema
+  const defaultStroke = isDarkMode ? '"#94a3b8"' : 'black'; // slate-400 o negro
+  const defaultText = isDarkMode ? '"#e2e8f0"' : 'black'; // slate-200 o negro
+  const defaultFill = isDarkMode ? '"#1e293b"' : 'white'; // slate-800 o blanco
 
-  // Nodo invisible para la flecha de inicio
+  let dot = 'digraph DFA {\n';
+  dot += '  rankdir=LR;\n';
+  dot += '  bgcolor="transparent";\n'; // Fondo transparente para heredar el de Tailwind
+  dot += `  node [fontname="Arial", fontsize=12, color=${defaultStroke}, fontcolor=${defaultText}];\n`;
+  dot += `  edge [fontname="Arial", fontsize=10, color=${defaultStroke}, fontcolor=${defaultText}];\n\n`;
+
   dot += '  __start [shape=none, label="", width=0, height=0];\n';
 
-  // Definición de estados
   for (const state of dfa.states) {
     const isAccept = dfa.acceptStates.has(state);
     const isCurrent = state === currentState;
 
     const shape = isAccept ? 'doublecircle' : 'circle';
-    const style = isCurrent ? 'filled' : 'solid';
-    const fillcolor = isCurrent ? '"#fde047"' : 'white'; // Amarillo Tailwind si es actual
-    const color = isCurrent ? '"#ca8a04"' : 'black';
+    const style = isCurrent ? 'filled' : 'filled';
+    const fillcolor = isCurrent ? '"#fde047"' : defaultFill; // Amarillo si es actual
+    const color = isCurrent ? '"#ca8a04"' : defaultStroke;
+    const fontcolor = isCurrent ? 'black' : defaultText;
 
-    dot += `  "${state}" [shape=${shape}, style=${style}, fillcolor=${fillcolor}, color=${color}];\n`;
+    dot += `  "${state}" [shape=${shape}, style=${style}, fillcolor=${fillcolor}, color=${color}, fontcolor=${fontcolor}];\n`;
   }
 
-  // Flecha inicial
-  dot += `  __start -> "${dfa.initialState}";\n\n`;
+  dot += `  __start -> "${dfa.initialState}" [color=${defaultStroke}];\n\n`;
 
-  // Transiciones
   for (const fromState in dfa.transitions) {
     const stateTransitions = dfa.transitions[fromState];
-    
-    // Agrupar símbolos que van al mismo destino para no dibujar flechas duplicadas
     const destMap = new Map<string, string[]>();
+    
     for (const symbol in stateTransitions) {
       const toState = stateTransitions[symbol];
       if (!destMap.has(toState)) destMap.set(toState, []);
@@ -50,17 +49,15 @@ export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA
 
     for (const [toState, symbols] of destMap.entries()) {
       const label = symbols.join(', ');
-      
-      // Verificar si esta es la transición que se acaba de ejecutar
       const isActive = activeTransition?.from === fromState && 
                        activeTransition?.to === toState && 
                        symbols.includes(activeTransition.symbol);
 
-      const color = isActive ? '"#ef4444"' : 'black'; // Rojo si está activa
+      const edgeColor = isActive ? '"#ef4444"' : defaultStroke; 
+      const edgeFont = isActive ? '"#ef4444"' : defaultText;
       const penwidth = isActive ? '2.5' : '1.0';
-      const fontcolor = isActive ? '"#ef4444"' : 'black';
 
-      dot += `  "${fromState}" -> "${toState}" [label="${label}", color=${color}, fontcolor=${fontcolor}, penwidth=${penwidth}];\n`;
+      dot += `  "${fromState}" -> "${toState}" [label="${label}", color=${edgeColor}, fontcolor=${edgeFont}, penwidth=${penwidth}];\n`;
     }
   }
 

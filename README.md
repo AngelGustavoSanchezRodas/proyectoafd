@@ -23,8 +23,8 @@ Asegúrate de contar con lo siguiente instalado en tu sistema:
 Abre una terminal y clona el proyecto desde GitHub:
 
 ```bash
-git clone https://github.com/AngelGustavoSanchezRodas/ProyectoAFD.git
-cd ProyectoAFD
+git clone https://github.com/AngelGustavoSanchezRodas/proyectoafd.git
+cd Proyectoafd
 ```
 
 ### 2. Instalar Dependencias
