@@ -1,6 +1,6 @@
 // src/core/engine.test.ts
 import { describe, it, expect } from 'vitest';
-import { parseDFA } from './parser';
+import { parseDFA, parseDFATolerant } from './parser';
 import { DFAEngine } from './engine';
 
 const rawInput = `Simbolos: 0,1
@@ -71,5 +71,29 @@ describe('DFA Core Engine', () => {
     expect(state.currentStepIndex).toBe(0);
     expect(state.history[state.currentStepIndex].currentState).toBe('Q0');
     expect(state.status).toBe('idle');
+  });
+
+  it('Debe extraer estados de aceptación y advertencias de forma tolerante durante la edición', () => {
+    const inputWithExtraDests = `Simbolos: 0,1
+Estados: Q0,Q1,Q2,Q3,Q4
+Estado inicial: Q0
+Estados de aceptación: Q0, Q4
+Transiciones:
+Q2,Q1,Q4
+Q3,Q0,Q4
+Q0,Q3,Q3
+Q1,Q2, Q4
+Cadenas a analizar:
+1,0,0,1
+0,0,1,0,1, `;
+    const result = parseDFATolerant(inputWithExtraDests);
+
+    expect(result.dfa.states).toEqual(['Q0', 'Q1', 'Q2', 'Q3', 'Q4']);
+    expect(result.dfa.acceptStates.has('Q0')).toBe(true);
+    expect(result.dfa.acceptStates.has('Q4')).toBe(true);
+    expect(result.warnings.length).toBeGreaterThan(0);
+    expect(result.isValidForSimulation).toBe(false);
+    // Limpieza de cadenas a analizar con comas finales
+    expect(result.dfa.testStrings[1]).toEqual(['0', '0', '1', '0', '1']);
   });
 });

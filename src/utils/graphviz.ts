@@ -15,8 +15,7 @@ export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA
   const defaultFill = isDarkMode ? '"#1e293b"' : 'white'; // slate-800 o blanco
 
   let dot = 'digraph DFA {\n';
-  dot += '  rankdir=LR;\n';
-  dot += '  bgcolor="transparent";\n'; // Fondo transparente para heredar el de Tailwind
+  dot += '  graph [rankdir=LR, bgcolor="transparent", pad="0.3", nodesep="0.6", ranksep="0.7"];\n';
   dot += `  node [fontname="Arial", fontsize=12, color=${defaultStroke}, fontcolor=${defaultText}];\n`;
   dot += `  edge [fontname="Arial", fontsize=10, color=${defaultStroke}, fontcolor=${defaultText}];\n\n`;
 

@@ -55,3 +55,13 @@ export interface SimulationState {
   currentStepIndex: number;
   errorMessage?: string;
 }
+
+/**
+ * Resultado estructurado del análisis sintáctico y semántico de un autómata.
+ */
+export interface ParseResult {
+  dfa: DFA;
+  error: string | null;
+  warnings: string[];
+  isValidForSimulation: boolean;
+}
