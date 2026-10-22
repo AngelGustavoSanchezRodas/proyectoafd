@@ -301,7 +301,8 @@ export default function Home() {
         <main 
           id="main-content"
           role="main"
-          className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-1 flex flex-col space-y-6"
+          tabIndex={-1}
+          className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-1 flex flex-col space-y-6 focus:outline-none"
         >
           {/* Título Principal Semántico Oculto para Lectores de Pantalla y SEO */}
           <h1 className="sr-only">

@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -14,6 +15,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://proyectoafd.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default: "Simulador de Autómatas Finitos Deterministas (AFD) | UMG",
     template: "%s | Simulador AFD",
@@ -42,6 +46,21 @@ export const metadata: Metadata = {
   creator: "Facultad de Ingeniería en Sistemas - Universidad Mariano Gálvez",
   publisher: "Universidad Mariano Gálvez de Guatemala",
   applicationName: "Simulador AFD",
+  category: "education",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: ["/icon.svg"],
+  },
   robots: {
     index: true,
     follow: true,
@@ -54,17 +73,26 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Simulador de Autómatas Finitos Deterministas (AFD)",
+    title: "Simulador de Autómatas Finitos Deterministas (AFD) | UMG",
     description: "Plataforma interactiva para diseñar, visualizar y simular Autómatas Finitos Deterministas en tiempo real con Graphviz WebAssembly.",
     url: "https://proyectoafd.vercel.app",
     siteName: "Simulador AFD UMG",
     locale: "es_GT",
     type: "website",
+    images: [
+      {
+        url: "/icon.svg",
+        width: 128,
+        height: 128,
+        alt: "Simulador de Autómatas Finitos Deterministas (AFD) UMG",
+      },
+    ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Simulador de Autómatas Finitos Deterministas (AFD)",
     description: "Herramienta interactiva para simular y analizar Autómatas Finitos Deterministas con visualización Graphviz en tiempo real.",
+    images: ["/icon.svg"],
   },
 };
 
@@ -72,9 +100,12 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   name: "Simulador de Autómatas Finitos Deterministas (AFD)",
+  url: "https://proyectoafd.vercel.app",
   description: "Herramienta web interactiva para la creación, visualización y simulación paso a paso de Autómatas Finitos Deterministas.",
   applicationCategory: "EducationalApplication",
+  applicationSubCategory: "ComputerScienceApplication",
   operatingSystem: "All",
+  browserRequirements: "Requires WebAssembly Support",
   inLanguage: "es",
   offers: {
     "@type": "Offer",
@@ -84,7 +115,15 @@ const jsonLd = {
   author: {
     "@type": "EducationalOrganization",
     name: "Universidad Mariano Gálvez de Guatemala",
+    url: "https://umg.edu.gt",
   },
+  featureList: [
+    "Visualización de grafos de estados en tiempo real con Graphviz WebAssembly",
+    "Simulación paso a paso con historial inmutable (Time-Travel)",
+    "Editor reactivo de definiciones formales con validación sintáctica en vivo",
+    "Matriz de transiciones delta y tabla de cadenas de prueba",
+    "Soporte completo de modo oscuro y diseño responsive"
+  ],
 };
 
 export default function RootLayout({
@@ -109,6 +148,7 @@ export default function RootLayout({
           Saltar al contenido principal
         </a>
         {children}
+        <Analytics />
       </body>
     </html>
   );
