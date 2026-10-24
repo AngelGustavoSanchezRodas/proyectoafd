@@ -17,6 +17,12 @@ import TapeViewer from "@/components/TapeViewer";
 import AboutModal from "@/components/AboutModal";
 import HelpModal from "@/components/HelpModal";
 import GuideModal from "@/components/GuideModal";
+import InstallModal from "@/components/InstallModal";
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 export default function Home() {
   const [dfa, setDfa] = useState<DFA | null>(null);
@@ -32,6 +38,9 @@ export default function Home() {
   const [showAbout, setShowAbout] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showInstall, setShowInstall] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
   
   const [isDragging, setIsDragging] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false); 
@@ -70,6 +79,34 @@ export default function Home() {
 
     return () => clearTimeout(timer);
   }, [rawText]);
+
+  // Detección de entorno PWA de escritorio y captura de evento de instalación
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone);
+      setIsStandalone(Boolean(isStandaloneMode));
+
+      const handleBeforeInstall = (e: Event) => {
+        e.preventDefault();
+        setDeferredPrompt(e as BeforeInstallPromptEvent);
+      };
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+      return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    }
+  }, []);
+
+  const handleTriggerInstall = async () => {
+    if (deferredPrompt) {
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      setShowInstall(true);
+    }
+  };
 
   // Sincronización al alternar a la vista de simulación
   useEffect(() => {
@@ -110,6 +147,13 @@ export default function Home() {
   };
 
   const handleExit = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.close();
+      } catch {
+        // En caso de restricciones del navegador
+      }
+    }
     setDfa(null);
     setLiveDfa(null);
     setSimulation(null);
@@ -119,6 +163,7 @@ export default function Home() {
     setError(null);
     setLiveError(null);
     setIsPlaying(false);
+    setResults({});
   };
 
   const processContent = (content: string, name?: string) => {
@@ -131,18 +176,19 @@ export default function Home() {
       setError(null);
       setLiveError(null);
       setActiveStringIndex(0);
-      setResults({});
       setIsPlaying(false);
       setViewMode('simulator');
       
       const newEngine = new DFAEngine(parsedDfa);
       setSimulation(newEngine.initialize(0));
+      setResults(newEngine.evaluateAllStrings());
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error al procesar el archivo.";
       setError(msg);
       setDfa(null);
       setLiveDfa(null);
       setSimulation(null);
+      setResults({});
     }
   };
 
@@ -187,12 +233,18 @@ export default function Home() {
     setDfa(result.dfa);
     setLiveDfa(result.dfa);
     setActiveStringIndex(0);
-    setResults({});
     setIsPlaying(false);
     setError(null);
     const newEngine = new DFAEngine(result.dfa);
     setSimulation(newEngine.initialize(0));
+    setResults(newEngine.evaluateAllStrings());
     setViewMode('simulator');
+  };
+
+  const handleEvaluateAll = () => {
+    if (engine) {
+      setResults(engine.evaluateAllStrings());
+    }
   };
 
   // --- CONTROLES DE SIMULACIÓN ---
@@ -280,8 +332,16 @@ export default function Home() {
           onShowAbout={() => setShowAbout(true)}
           onShowHelp={() => setShowHelp(true)}
           onShowGuide={() => setShowGuide(true)}
+          onShowInstall={() => {
+            if (deferredPrompt) {
+              handleTriggerInstall();
+            } else {
+              setShowInstall(true);
+            }
+          }}
           hasActiveDFA={rawText.length > 0}
           isDarkMode={isDarkMode}
+          isStandalone={isStandalone}
           toggleTheme={() => setIsDarkMode(!isDarkMode)}
           viewMode={viewMode}
           setViewMode={setViewMode}
@@ -815,6 +875,7 @@ export default function Home() {
                   activeStringIndex={activeStringIndex} 
                   results={results} 
                   onSelectString={loadString} 
+                  onEvaluateAll={handleEvaluateAll}
                 />
                 
                 <section 
@@ -841,6 +902,13 @@ export default function Home() {
         <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
         <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
         <GuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
+        <InstallModal 
+          isOpen={showInstall} 
+          onClose={() => setShowInstall(false)} 
+          onTriggerInstall={handleTriggerInstall}
+          hasPrompt={Boolean(deferredPrompt)}
+          isStandalone={isStandalone}
+        />
 
       </div>
     </div>

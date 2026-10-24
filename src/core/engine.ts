@@ -112,4 +112,27 @@ export class DFAEngine {
       errorMessage: undefined // Limpiar errores si retrocedemos
     };
   }
+
+  /**
+   * Evalúa una cadena específica hasta el final y retorna el estado final de la simulación.
+   */
+  public evaluateString(stringIndex: number): SimulationState {
+    let state = this.initialize(stringIndex);
+    while (state.status === 'idle' || state.status === 'running') {
+      state = this.stepForward(state);
+    }
+    return state;
+  }
+
+  /**
+   * Evalúa todas las cadenas de prueba del autómata y retorna un mapa con sus resultados.
+   */
+  public evaluateAllStrings(): Record<number, 'accepted' | 'rejected' | 'error'> {
+    const results: Record<number, 'accepted' | 'rejected' | 'error'> = {};
+    for (let i = 0; i < this.dfa.testStrings.length; i++) {
+      const finalState = this.evaluateString(i);
+      results[i] = finalState.status as 'accepted' | 'rejected' | 'error';
+    }
+    return results;
+  }
 }

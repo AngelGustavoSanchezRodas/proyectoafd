@@ -1,6 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -147,6 +148,7 @@ export default function RootLayout({
         >
           Saltar al contenido principal
         </a>
+        <ServiceWorkerRegister />
         {children}
         <Analytics />
       </body>

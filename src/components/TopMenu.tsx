@@ -13,8 +13,10 @@ interface TopMenuProps {
   onShowAbout: () => void;
   onShowHelp: () => void;
   onShowGuide: () => void;
+  onShowInstall: () => void;
   hasActiveDFA: boolean;
   isDarkMode: boolean;
+  isStandalone?: boolean;
   toggleTheme: () => void;
   viewMode: 'simulator' | 'editor';
   setViewMode: (mode: 'simulator' | 'editor') => void;
@@ -29,8 +31,10 @@ export default function TopMenu({
   onShowAbout,
   onShowHelp,
   onShowGuide,
+  onShowInstall,
   hasActiveDFA,
   isDarkMode,
+  isStandalone = false,
   toggleTheme,
   viewMode,
   setViewMode
@@ -112,12 +116,12 @@ export default function TopMenu({
                 </button>
                 <div className="border-t border-slate-200 dark:border-slate-700/70 my-1" role="separator"></div>
                 <button
-                  id="item-limpiar-cerrar"
+                  id="item-salir-aplicacion"
                   role="menuitem"
                   onClick={() => { onExitClick(); closeDropdown(); }}
                   className="w-full text-left px-3.5 py-2 hover:bg-rose-600 hover:text-white text-rose-600 dark:text-rose-400 flex items-center justify-between transition-colors"
                 >
-                  <span>Limpiar / Cerrar</span>
+                  <span>Salir</span>
                 </button>
               </div>
             )}
@@ -170,33 +174,50 @@ export default function TopMenu({
             )}
           </div>
 
-          {/* Menú Documentación */}
+          {/* Menú Acerca de... */}
           <div className="relative">
             <button
-              id="btn-menu-ayuda"
+              id="btn-menu-acerca-de"
               aria-haspopup="true"
-              aria-expanded={activeDropdown === 'ayuda'}
-              aria-controls="menu-ayuda-dropdown"
-              onClick={() => toggleDropdown('ayuda')}
+              aria-expanded={activeDropdown === 'acerca-de'}
+              aria-controls="menu-acerca-de-dropdown"
+              onClick={() => toggleDropdown('acerca-de')}
               className={`px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1 ${
-                activeDropdown === 'ayuda'
+                activeDropdown === 'acerca-de'
                   ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
                   : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
               }`}
             >
-              <span>Documentación</span>
+              <span>Acerca de...</span>
               <svg className="w-3 h-3 opacity-60" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
 
-            {activeDropdown === 'ayuda' && (
+            {activeDropdown === 'acerca-de' && (
               <div 
-                id="menu-ayuda-dropdown"
+                id="menu-acerca-de-dropdown"
                 role="menu"
-                aria-label="Documentación e información"
+                aria-label="Información institucional y ayuda"
                 className="absolute top-full left-0 mt-1.5 w-56 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-xl py-1.5 text-xs z-50"
               >
+                <button
+                  id="item-acerca-de"
+                  role="menuitem"
+                  onClick={() => { onShowAbout(); closeDropdown(); }}
+                  className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white transition-colors"
+                >
+                  Acerca de...
+                </button>
+                <button
+                  id="item-manual-usuario"
+                  role="menuitem"
+                  onClick={() => { onShowHelp(); closeDropdown(); }}
+                  className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white transition-colors"
+                >
+                  Ayuda (Manual de Usuario)
+                </button>
+                <div className="border-t border-slate-200 dark:border-slate-700/70 my-1" role="separator"></div>
                 <button
                   id="item-guia-teorica"
                   role="menuitem"
@@ -205,22 +226,14 @@ export default function TopMenu({
                 >
                   Guía Teórica de AFD
                 </button>
-                <button
-                  id="item-manual-usuario"
-                  role="menuitem"
-                  onClick={() => { onShowHelp(); closeDropdown(); }}
-                  className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white transition-colors"
-                >
-                  Manual de Usuario
-                </button>
                 <div className="border-t border-slate-200 dark:border-slate-700/70 my-1" role="separator"></div>
                 <button
-                  id="item-acerca-de"
+                  id="item-instalar-aplicacion"
                   role="menuitem"
-                  onClick={() => { onShowAbout(); closeDropdown(); }}
+                  onClick={() => { onShowInstall(); closeDropdown(); }}
                   className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  Acerca del Proyecto
+                  Instalar en Escritorio (Windows)
                 </button>
               </div>
             )}
@@ -282,6 +295,23 @@ export default function TopMenu({
               </svg>
             )}
           </button>
+
+          {/* Botón de Instalación como App de Escritorio */}
+          {!isStandalone && (
+            <button
+              id="btn-instalar-app-escritorio"
+              onClick={onShowInstall}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-all flex items-center space-x-1.5"
+              title="Instalar en Windows como aplicación de escritorio independiente"
+            >
+              <svg className="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span className="hidden sm:inline">Instalar App</span>
+            </button>
+          )}
         </div>
 
       </div>

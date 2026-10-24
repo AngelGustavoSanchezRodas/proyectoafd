@@ -6,9 +6,10 @@ interface StringsTableProps {
   activeStringIndex: number;
   results: Record<number, 'accepted' | 'rejected' | 'error' | 'pending'>;
   onSelectString: (index: number) => void;
+  onEvaluateAll?: () => void;
 }
 
-export default function StringsTable({ dfa, activeStringIndex, results, onSelectString }: StringsTableProps) {
+export default function StringsTable({ dfa, activeStringIndex, results, onSelectString, onEvaluateAll }: StringsTableProps) {
   return (
     <section 
       id="section-strings-table"
@@ -23,9 +24,22 @@ export default function StringsTable({ dfa, activeStringIndex, results, onSelect
             Cadenas de Prueba
           </h2>
         </div>
-        <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-slate-600 dark:text-slate-300">
-          {dfa.testStrings.length} cadenas
-        </span>
+        <div className="flex items-center space-x-2">
+          {onEvaluateAll && (
+            <button
+              id="btn-evaluate-all-strings"
+              type="button"
+              onClick={onEvaluateAll}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white shadow-2xs transition-colors"
+              title="Evaluar todas las cadenas automáticamente y mostrar resultados"
+            >
+              Evaluar Todas
+            </button>
+          )}
+          <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-slate-600 dark:text-slate-300">
+            {dfa.testStrings.length} cadenas
+          </span>
+        </div>
       </div>
 
       <div className="overflow-x-auto max-h-[280px]">

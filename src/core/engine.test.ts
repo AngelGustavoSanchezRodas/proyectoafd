@@ -96,4 +96,16 @@ Cadenas a analizar:
     // Limpieza de cadenas a analizar con comas finales
     expect(result.dfa.testStrings[1]).toEqual(['0', '0', '1', '0', '1']);
   });
+
+  it('Debe evaluar cadenas de forma directa y por lote', () => {
+    const dfa = parseDFA(rawInput);
+    const engine = new DFAEngine(dfa);
+
+    const singleResult = engine.evaluateString(0);
+    expect(singleResult.status).toBe('accepted');
+
+    const allResults = engine.evaluateAllStrings();
+    expect(allResults[0]).toBe('accepted');
+    expect(allResults[1]).toBe('rejected');
+  });
 });
