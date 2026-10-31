@@ -1,7 +1,7 @@
 // src/app/page.tsx
 "use client";
 
-import { useState, useMemo, ChangeEvent, useEffect, useRef, DragEvent } from "react";
+import { useState, useMemo, ChangeEvent, useEffect, useRef, DragEvent, useSyncExternalStore } from "react";
 import { parseDFA, parseDFATolerant } from "@/core/parser";
 import { autoAlignDFAText } from "@/core/formatter";
 import { DFAEngine } from "@/core/engine";
@@ -9,6 +9,7 @@ import { DFA, SimulationState } from "@/types/dfa";
 import { generateDotCode } from "@/utils/graphviz";
 import { getStepExplanation } from "@/utils/explanation";
 import { dfaExamples } from "@/utils/examples";
+import { downloadSvgFile, downloadPngFile, getDiagramFileName } from "@/utils/exportDiagram";
 import DFADiagram from "@/components/DFADiagram";
 import TransitionTable from "@/components/TransitionTable";
 import StringsTable from "@/components/StringsTable";
@@ -24,11 +25,25 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+function getIsStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  return Boolean(
+    window.matchMedia('(display-mode: standalone)').matches ||
+    ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone)
+  );
+}
+
+function subscribeStandalone(callback: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const media = window.matchMedia('(display-mode: standalone)');
+  media.addEventListener('change', callback);
+  return () => media.removeEventListener('change', callback);
+}
+
 export default function Home() {
   const [dfa, setDfa] = useState<DFA | null>(null);
   const [liveDfa, setLiveDfa] = useState<DFA | null>(null);
   const [liveError, setLiveError] = useState<string | null>(null);
-  const [liveWarnings, setLiveWarnings] = useState<string[]>([]);
   const [rawText, setRawText] = useState<string>("");
   const [simulation, setSimulation] = useState<SimulationState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +55,7 @@ export default function Home() {
   const [showGuide, setShowGuide] = useState(false);
   const [showInstall, setShowInstall] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const isStandalone = useSyncExternalStore(subscribeStandalone, getIsStandalone, () => false);
   
   const [isDragging, setIsDragging] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false); 
@@ -55,21 +70,19 @@ export default function Home() {
 
   // Sincronización y validación reactiva en vivo del texto del autómata
   useEffect(() => {
-    if (!rawText.trim()) {
-      setLiveDfa(null);
-      setLiveError(null);
-      setLiveWarnings([]);
-      return;
-    }
-
     const timer = setTimeout(() => {
+      if (!rawText.trim()) {
+        setLiveDfa(null);
+        setLiveError(null);
+        return;
+      }
+
       const result = parseDFATolerant(rawText);
       // Siempre actualizamos liveDfa para que el diagrama muestre inmediatamente estados, aceptación y transiciones válidas
       if (result.dfa.states.length > 0) {
         setLiveDfa(result.dfa);
       }
       setLiveError(result.error);
-      setLiveWarnings(result.warnings);
 
       if (result.isValidForSimulation) {
         setDfa(result.dfa);
@@ -82,19 +95,25 @@ export default function Home() {
 
   // Detección de entorno PWA de escritorio y captura de evento de instalación
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone);
-      setIsStandalone(Boolean(isStandaloneMode));
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
 
-      const handleBeforeInstall = (e: Event) => {
-        e.preventDefault();
-        setDeferredPrompt(e as BeforeInstallPromptEvent);
-      };
-
-      window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-      return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-    }
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
+
+  const handleSelectViewMode = (mode: 'simulator' | 'editor') => {
+    setViewMode(mode);
+    if (mode === 'simulator' && dfa && (!simulation || simulation.dfa !== dfa)) {
+      const newEngine = new DFAEngine(dfa);
+      setSimulation(newEngine.initialize(0));
+      setActiveStringIndex(0);
+      setResults({});
+      setIsPlaying(false);
+    }
+  };
 
   const handleTriggerInstall = async () => {
     if (deferredPrompt) {
@@ -107,19 +126,6 @@ export default function Home() {
       setShowInstall(true);
     }
   };
-
-  // Sincronización al alternar a la vista de simulación
-  useEffect(() => {
-    if (viewMode === 'simulator' && dfa) {
-      if (!simulation || simulation.dfa !== dfa) {
-        const newEngine = new DFAEngine(dfa);
-        setSimulation(newEngine.initialize(0));
-        setActiveStringIndex(0);
-        setResults({});
-        setIsPlaying(false);
-      }
-    }
-  }, [viewMode, dfa]);
 
   // --- GESTIÓN DE ARCHIVOS Y MODELO ---
   const triggerFileInput = () => fileInputRef.current?.click();
@@ -144,6 +150,24 @@ export default function Home() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportDiagramSvg = () => {
+    const svgElement = document.querySelector('#dfa-graphviz-canvas svg') as SVGSVGElement | null;
+    if (!svgElement) return;
+    const targetName = getDiagramFileName(fileName, 'svg');
+    downloadSvgFile(svgElement, targetName, { isDarkMode });
+  };
+
+  const handleExportDiagramPng = async () => {
+    const svgElement = document.querySelector('#dfa-graphviz-canvas svg') as SVGSVGElement | null;
+    if (!svgElement) return;
+    try {
+      const targetName = getDiagramFileName(fileName, 'png');
+      await downloadPngFile(svgElement, targetName, { isDarkMode, scale: 2 });
+    } catch {
+      setError("No se pudo generar la imagen PNG del diagrama.");
+    }
   };
 
   const handleExit = () => {
@@ -259,7 +283,12 @@ export default function Home() {
     if (engine && simulation) {
       const nextState = engine.stepForward(simulation);
       setSimulation(nextState);
-      updateResultsIfFinished(nextState);
+      if (nextState.status === 'accepted' || nextState.status === 'rejected' || nextState.status === 'error') {
+        setResults(prev => ({
+          ...prev,
+          [activeStringIndex]: nextState.status as 'accepted' | 'rejected' | 'error' | 'pending'
+        }));
+      }
     }
   };
 
@@ -276,33 +305,32 @@ export default function Home() {
     }
   };
 
-  const updateResultsIfFinished = (state: SimulationState) => {
-    if (state.status === 'accepted' || state.status === 'rejected' || state.status === 'error') {
-      setResults(prev => ({ ...prev, [activeStringIndex]: state.status as 'accepted' | 'rejected' | 'error' | 'pending' }));
-      setIsPlaying(false);
-    }
-  };
-
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    if (isPlaying && simulation && engine) {
-      if (simulation.status === 'accepted' || simulation.status === 'rejected' || simulation.status === 'error') {
-        setIsPlaying(false);
-        return;
-      }
-      intervalId = setInterval(() => {
-        setSimulation(prevState => {
-          if (!prevState) return prevState;
-          const nextState = engine.stepForward(prevState);
-          updateResultsIfFinished(nextState);
-          return nextState;
-        });
-      }, speed);
-    }
+    if (!isPlaying || !engine) return;
+
+    const intervalId = setInterval(() => {
+      setSimulation(prevState => {
+        if (!prevState) return null;
+        if (prevState.status === 'accepted' || prevState.status === 'rejected' || prevState.status === 'error') {
+          setIsPlaying(false);
+          return prevState;
+        }
+        const nextState = engine.stepForward(prevState);
+        if (nextState.status === 'accepted' || nextState.status === 'rejected' || nextState.status === 'error') {
+          setResults(prev => ({
+            ...prev,
+            [activeStringIndex]: nextState.status as 'accepted' | 'rejected' | 'error' | 'pending'
+          }));
+          setIsPlaying(false);
+        }
+        return nextState;
+      });
+    }, speed);
+
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      clearInterval(intervalId);
     };
-  }, [isPlaying, simulation, engine, speed, activeStringIndex]);
+  }, [isPlaying, engine, speed, activeStringIndex]);
 
 
 
@@ -328,6 +356,8 @@ export default function Home() {
           onNewClick={handleCreateNew}
           onSaveClick={handleSaveFile}
           onExitClick={handleExit}
+          onExportSvg={handleExportDiagramSvg}
+          onExportPng={handleExportDiagramPng}
           onLoadExample={(content, name) => processContent(content, name)}
           onShowAbout={() => setShowAbout(true)}
           onShowHelp={() => setShowHelp(true)}
@@ -344,7 +374,7 @@ export default function Home() {
           isStandalone={isStandalone}
           toggleTheme={() => setIsDarkMode(!isDarkMode)}
           viewMode={viewMode}
-          setViewMode={setViewMode}
+          setViewMode={handleSelectViewMode}
         />
 
         <input 
@@ -429,7 +459,7 @@ export default function Home() {
               <div className="flex items-center space-x-2">
                 <button
                   id="btn-edit-definition"
-                  onClick={() => setViewMode('editor')}
+                  onClick={() => handleSelectViewMode('editor')}
                   className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors"
                 >
                   Editar Definición
@@ -440,6 +470,19 @@ export default function Home() {
                   className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors"
                 >
                   Descargar .txt
+                </button>
+                <button
+                  id="btn-download-diagram-bar"
+                  onClick={handleExportDiagramSvg}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors flex items-center space-x-1"
+                  title="Descargar diagrama en formato vectorial SVG"
+                >
+                  <svg className="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span>Descargar Diagrama</span>
                 </button>
                 <button
                   id="btn-close-active-dfa"
@@ -622,6 +665,8 @@ export default function Home() {
                     <DFADiagram 
                       dotCode={liveDotCode} 
                       heightClass="h-[360px] lg:h-[460px]" 
+                      fileName={fileName}
+                      isDarkMode={isDarkMode}
                     />
                   ) : (
                     <div className="flex-1 w-full rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center p-8 text-center text-slate-400 dark:text-slate-500 min-h-[360px]">
@@ -774,7 +819,11 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <DFADiagram dotCode={dotCode} />
+                  <DFADiagram 
+                    dotCode={dotCode} 
+                    fileName={fileName}
+                    isDarkMode={isDarkMode}
+                  />
                 </section>
 
                 {/* Tarjeta de la Cinta de Procesamiento y Controles */}

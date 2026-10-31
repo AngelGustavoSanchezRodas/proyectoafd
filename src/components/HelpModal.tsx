@@ -28,7 +28,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
           <p><strong>1. Cargar o Diseñar un Autómata:</strong> Utiliza el menú <em>Archivo &gt; Abrir</em> o arrastra un archivo .txt al panel inicial. También puedes hacer clic en <em>Nuevo</em> para escribir el autómata directamente en el editor.</p>
           <p><strong>2. Formato Estricto:</strong> El archivo debe contener en líneas separadas las etiquetas: <code>Simbolos:</code>, <code>Estados:</code>, <code>Estado inicial:</code>, <code>Estados de aceptación:</code>, <code>Transiciones:</code> y <code>Cadenas a analizar:</code>.</p>
           <p><strong>3. Navegación en el Tiempo (Time-Travel):</strong> Puedes avanzar o retroceder paso a paso a través de la cinta para inspeccionar cada transición y estado sin perder el historial.</p>
-          <p><strong>4. Exportación:</strong> Cualquier modificación en la pestaña <em>Editor</em> puede guardarse en tu disco con <em>Archivo &gt; Guardar</em>.</p>
+          <p><strong>4. Exportación y Descarga:</strong> Puedes guardar la definición formal (.txt) o descargar el diagrama dibujado directamente en formato vectorial SVG o imagen PNG en alta resolución desde la barra de herramientas del diagrama o el menú <em>Archivo</em>.</p>
         </div>
         <div className="mt-6 flex justify-end">
           <button 
