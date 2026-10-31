@@ -42,11 +42,13 @@ export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA
     
     for (const symbol in stateTransitions) {
       const toState = stateTransitions[symbol];
+      if (!toState) continue;
       if (!destMap.has(toState)) destMap.set(toState, []);
       destMap.get(toState)!.push(symbol);
     }
 
     for (const [toState, symbols] of destMap.entries()) {
+      if (!toState) continue;
       const label = symbols.join(', ');
       const isActive = activeTransition?.from === fromState && 
                        activeTransition?.to === toState && 

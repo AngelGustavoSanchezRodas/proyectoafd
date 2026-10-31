@@ -15,6 +15,10 @@ export function getStepExplanation(simulation: SimulationState | null, dfa: DFA 
   if (simulation.status === 'error') {
     return `Excepción detectada: ${simulation.errorMessage}`;
   }
+
+  if (simulation.status === 'rejected' && simulation.errorMessage) {
+    return `${simulation.errorMessage} Cadena RECHAZADA.`;
+  }
   
   if (step?.transitionUsed) {
     const trans = step.transitionUsed;

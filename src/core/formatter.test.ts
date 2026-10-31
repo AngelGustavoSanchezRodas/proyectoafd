@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { autoAlignDFAText } from './formatter';
 
 describe('Alineador automático de formato DFA (autoAlignDFAText)', () => {
-  it('Debe recortar transiciones excedentes y rellenar estados faltantes', () => {
+  it('Debe recortar transiciones excedentes y rellenar estados faltantes en formato matricial', () => {
     const rawWithExtra = `Simbolos: 0,1
 Estados: Q0,Q1,Q2
 Estado inicial: Q0
@@ -33,6 +33,31 @@ Cadenas a analizar:
     const cadenasIndex = lines.findIndex(l => l.toLowerCase().startsWith('cadenas a analizar:'));
     expect(lines[cadenasIndex + 1]).toBe('0,1');
     expect(lines[cadenasIndex + 2]).toBe('1,0');
+  });
+
+  it('Debe autocompletar ternas faltantes preservando el formato de terna', () => {
+    const tripletRaw = `Simbolos: 0,1
+Estados: A,B,C
+Estado inicial: A
+Estados de aceptación: C
+Transiciones:
+A,0,B
+B,1,C
+C,0,A
+C,1,C
+Cadenas a analizar:
+0,1,0`;
+
+    const aligned = autoAlignDFAText(tripletRaw);
+    const lines = aligned.split('\n');
+
+    // Debe contener las ternas originales y las que faltaban (A,1,A y B,0,B)
+    expect(lines).toContain('A,0,B');
+    expect(lines).toContain('A,1,A');
+    expect(lines).toContain('B,1,C');
+    expect(lines).toContain('B,0,B');
+    expect(lines).toContain('C,0,A');
+    expect(lines).toContain('C,1,C');
   });
 
   it('Debe devolver el texto intacto si está vacío', () => {

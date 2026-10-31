@@ -11,9 +11,14 @@ export class DFAEngine {
   /**
    * Prepara la simulación para una cadena específica.
    */
-  public initialize(stringIndex: number): SimulationState {
-    if (stringIndex < 0 || stringIndex >= this.dfa.testStrings.length) {
-      throw new Error("Índice de cadena inválido.");
+  public initialize(stringIndex: number = 0): SimulationState {
+    let currentString: string[] = [];
+
+    if (this.dfa.testStrings && this.dfa.testStrings.length > 0) {
+      if (stringIndex < 0 || stringIndex >= this.dfa.testStrings.length) {
+        throw new Error("Índice de cadena inválido.");
+      }
+      currentString = this.dfa.testStrings[stringIndex];
     }
 
     const initialStep: SimulationStep = {
@@ -25,7 +30,7 @@ export class DFAEngine {
 
     return {
       dfa: this.dfa,
-      currentString: this.dfa.testStrings[stringIndex],
+      currentString,
       status: 'idle',
       history: [initialStep],
       currentStepIndex: 0
@@ -61,14 +66,26 @@ export class DFAEngine {
       };
     }
 
-    const nextStateName = this.dfa.transitions[currentStep.currentState][symbol];
+    const nextStateName = this.dfa.transitions[currentStep.currentState]?.[symbol];
     
-    // Transición inexistente (aunque en un AFD válido siempre debería existir)
+    // Transición inexistente (en un autómata con función parcial o no totalmente especificado)
     if (!nextStateName) {
+      const haltStep: SimulationStep = {
+        currentState: currentStep.currentState,
+        symbolRead: symbol,
+        transitionUsed: null,
+        stringIndex: nextStringIndex
+      };
+
+      const newHistory = state.history.slice(0, state.currentStepIndex + 1);
+      newHistory.push(haltStep);
+
       return {
         ...state,
-        status: 'error',
-        errorMessage: `No hay transición desde '${currentStep.currentState}' con símbolo '${symbol}'.`
+        status: 'rejected',
+        errorMessage: `Sin transición definida desde '${currentStep.currentState}' con el símbolo '${symbol}'. Cadena rechazada por función parcial.`,
+        history: newHistory,
+        currentStepIndex: state.currentStepIndex + 1
       };
     }
 

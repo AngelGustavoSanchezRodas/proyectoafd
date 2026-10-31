@@ -3,22 +3,47 @@ import { parseDFATolerant } from './parser';
 
 /**
  * Ajusta automáticamente el texto de definición de un autómata:
- * 1. Asegura que cada fila de transición contenga exactamente el número de destinos
- *    correspondiente a los símbolos del alfabeto declarado.
- * 2. Si faltan filas de transición para estados declarados, añade filas por defecto.
- * 3. Limpia comas y espacios superfluos al final de las cadenas a analizar.
+ * 1. Si las transiciones usan formato de ternas (Origen, Símbolo, Destino),
+ *    completa las ternas faltantes para garantizar que la función delta sea total.
+ * 2. Si las transiciones usan formato matricial por filas, asegura que cada fila
+ *    tenga exactamente los destinos correspondientes a los símbolos declarados.
+ * 3. Limpia comas y espacios superfluos en las cadenas a analizar.
  */
 export function autoAlignDFAText(rawText: string): string {
   if (!rawText.trim()) return rawText;
 
   const result = parseDFATolerant(rawText);
-  const { symbols, states } = result.dfa;
+  const { symbols, states, transitions } = result.dfa;
   if (symbols.length === 0 || states.length === 0) return rawText;
 
   const lines = rawText.split('\n');
+  
+  // Detectar si la sección de transiciones contiene formato de terna (Origen, Símbolo, Destino)
+  let usesTriplets = false;
+  let inTransitionsCheck = false;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith('transiciones:')) {
+      inTransitionsCheck = true;
+      continue;
+    }
+    if (lower.startsWith('cadenas a analizar:') || lower.startsWith('cadenas:')) {
+      break;
+    }
+    if (inTransitionsCheck && trimmed) {
+      const parts = trimmed.replace(/->/g, ',').split(',').map(s => s.trim()).filter(Boolean);
+      if (parts.length === 3 && states.includes(parts[0]) && symbols.includes(parts[1])) {
+        usesTriplets = true;
+        break;
+      }
+    }
+  }
+
   const newLines: string[] = [];
   let inTransitions = false;
   let transitionIdx = 0;
+  const processedTriplets = new Set<string>();
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -33,11 +58,25 @@ export function autoAlignDFAText(rawText: string): string {
 
     if (lower.startsWith('cadenas a analizar:') || lower.startsWith('cadenas:')) {
       if (inTransitions) {
-        while (transitionIdx < states.length) {
-          const st = states[transitionIdx];
-          const defaultDests = symbols.map(() => st).join(',');
-          newLines.push(defaultDests);
-          transitionIdx++;
+        if (usesTriplets) {
+          // Completar ternas faltantes
+          for (const st of states) {
+            for (const sym of symbols) {
+              const key = `${st},${sym}`;
+              if (!processedTriplets.has(key)) {
+                const dest = transitions[st]?.[sym] || st;
+                newLines.push(`${st},${sym},${dest}`);
+                processedTriplets.add(key);
+              }
+            }
+          }
+        } else {
+          while (transitionIdx < states.length) {
+            const st = states[transitionIdx];
+            const defaultDests = symbols.map(() => st).join(',');
+            newLines.push(defaultDests);
+            transitionIdx++;
+          }
         }
         inTransitions = false;
       }
@@ -50,14 +89,29 @@ export function autoAlignDFAText(rawText: string): string {
         newLines.push(line);
         continue;
       }
-      if (transitionIdx < states.length) {
-        const rawParts = line.split(',').map(s => s.trim()).filter(Boolean);
-        const cleanDests = rawParts.slice(0, symbols.length);
-        while (cleanDests.length < symbols.length) {
-          cleanDests.push(states[transitionIdx]);
+
+      if (usesTriplets) {
+        const parts = line.replace(/->/g, ',').split(',').map(s => s.trim()).filter(Boolean);
+        if (parts.length === 3 && states.includes(parts[0]) && symbols.includes(parts[1])) {
+          const from = parts[0];
+          const sym = parts[1];
+          const dest = states.includes(parts[2]) ? parts[2] : from;
+          const key = `${from},${sym}`;
+          if (!processedTriplets.has(key)) {
+            newLines.push(`${from},${sym},${dest}`);
+            processedTriplets.add(key);
+          }
         }
-        newLines.push(cleanDests.join(','));
-        transitionIdx++;
+      } else {
+        if (transitionIdx < states.length) {
+          const rawParts = line.split(',').map(s => s.trim()).filter(Boolean);
+          const cleanDests = rawParts.slice(0, symbols.length);
+          while (cleanDests.length < symbols.length) {
+            cleanDests.push(states[transitionIdx]);
+          }
+          newLines.push(cleanDests.join(','));
+          transitionIdx++;
+        }
       }
     } else {
       if (newLines.some(l => l.toLowerCase().startsWith('cadenas a analizar:') || l.toLowerCase().startsWith('cadenas:'))) {
@@ -74,11 +128,24 @@ export function autoAlignDFAText(rawText: string): string {
   }
 
   if (inTransitions) {
-    while (transitionIdx < states.length) {
-      const st = states[transitionIdx];
-      const defaultDests = symbols.map(() => st).join(',');
-      newLines.push(defaultDests);
-      transitionIdx++;
+    if (usesTriplets) {
+      for (const st of states) {
+        for (const sym of symbols) {
+          const key = `${st},${sym}`;
+          if (!processedTriplets.has(key)) {
+            const dest = transitions[st]?.[sym] || st;
+            newLines.push(`${st},${sym},${dest}`);
+            processedTriplets.add(key);
+          }
+        }
+      }
+    } else {
+      while (transitionIdx < states.length) {
+        const st = states[transitionIdx];
+        const defaultDests = symbols.map(() => st).join(',');
+        newLines.push(defaultDests);
+        transitionIdx++;
+      }
     }
   }
 
