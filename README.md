@@ -1,8 +1,8 @@
-# Prompt Maestro AFD
+# Simulador de Autómatas Finitos Deterministas (AFD)
 
 Plataforma web interactiva para la simulación, análisis paso a paso y visualización gráfica de **Autómatas Finitos Deterministas (AFD)**.
 
-Permite cargar la definición formal de un AFD mediante archivos de texto (`.txt`), generar automáticamente su diagrama visual en lenguaje DOT con **Graphviz** (vía WebAssembly), explorar la tabla de transiciones y ejecutar o retroceder la lectura de cadenas símbolo a símbolo (*Time-Travel*).
+Permite cargar la definición formal de un AFD mediante archivos de texto (`.txt`), generar automáticamente su diagrama visual en lenguaje DOT con **Graphviz** (vía WebAssembly), descargar el diagrama en formatos SVG o PNG, explorar la tabla de transiciones y ejecutar o retroceder la lectura de cadenas símbolo a símbolo (*Time-Travel*).
 
 ---
 

@@ -103,8 +103,17 @@ export default function DFADiagram({
         setIsMenuOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isMenuOpen]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.15, 2.0));
@@ -167,7 +176,8 @@ export default function DFADiagram({
         <button
           id="btn-zoom-out"
           onClick={handleZoomOut}
-          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
+          disabled={scale <= 0.5}
+          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/15 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           title="Alejar diagrama"
           aria-label="Alejar diagrama"
         >
@@ -178,7 +188,8 @@ export default function DFADiagram({
         <button
           id="btn-zoom-reset"
           onClick={handleResetZoom}
-          className="px-1.5 py-0.5 text-[11px] font-mono hover:bg-black/10 dark:hover:bg-white/15 rounded transition-colors"
+          disabled={scale === 1}
+          className="px-1.5 py-0.5 text-[11px] font-mono hover:bg-black/10 dark:hover:bg-white/15 rounded transition-colors disabled:opacity-50 disabled:cursor-default"
           title="Restablecer escala al 100%"
           aria-label="Restablecer escala al 100%"
         >
@@ -187,7 +198,8 @@ export default function DFADiagram({
         <button
           id="btn-zoom-in"
           onClick={handleZoomIn}
-          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
+          disabled={scale >= 2.0}
+          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/15 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           title="Acercar diagrama"
           aria-label="Acercar diagrama"
         >
@@ -208,7 +220,7 @@ export default function DFADiagram({
             className={`p-1 rounded transition-colors flex items-center space-x-1 ${
               isMenuOpen
                 ? 'bg-blue-600 text-white'
-                : 'hover:bg-black/10 dark:hover:bg-white/15 disabled:opacity-40 disabled:hover:bg-transparent'
+                : 'hover:bg-black/10 dark:hover:bg-white/15 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed'
             }`}
             title="Descargar diagrama dibujado"
             aria-label="Descargar diagrama dibujado en formato SVG o PNG"

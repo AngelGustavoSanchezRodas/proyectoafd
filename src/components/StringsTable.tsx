@@ -30,8 +30,10 @@ export default function StringsTable({ dfa, activeStringIndex, results, onSelect
               id="btn-evaluate-all-strings"
               type="button"
               onClick={onEvaluateAll}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white shadow-2xs transition-colors"
+              disabled={dfa.testStrings.length === 0}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white shadow-2xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               title="Evaluar todas las cadenas automáticamente y mostrar resultados"
+              aria-label="Evaluar todas las cadenas de prueba"
             >
               Evaluar Todas
             </button>

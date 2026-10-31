@@ -9,7 +9,6 @@ import { DFA, SimulationState } from "@/types/dfa";
 import { generateDotCode } from "@/utils/graphviz";
 import { getStepExplanation } from "@/utils/explanation";
 import { dfaExamples } from "@/utils/examples";
-import { downloadSvgFile, downloadPngFile, getDiagramFileName } from "@/utils/exportDiagram";
 import DFADiagram from "@/components/DFADiagram";
 import TransitionTable from "@/components/TransitionTable";
 import StringsTable from "@/components/StringsTable";
@@ -104,6 +103,21 @@ export default function Home() {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
 
+  // Cierre accesible de ventanas modales mediante la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowAbout(false);
+        setShowHelp(false);
+        setShowGuide(false);
+        setShowInstall(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleSelectViewMode = (mode: 'simulator' | 'editor') => {
     setViewMode(mode);
     if (mode === 'simulator' && dfa && (!simulation || simulation.dfa !== dfa)) {
@@ -152,32 +166,7 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
-  const handleExportDiagramSvg = () => {
-    const svgElement = document.querySelector('#dfa-graphviz-canvas svg') as SVGSVGElement | null;
-    if (!svgElement) return;
-    const targetName = getDiagramFileName(fileName, 'svg');
-    downloadSvgFile(svgElement, targetName, { isDarkMode });
-  };
-
-  const handleExportDiagramPng = async () => {
-    const svgElement = document.querySelector('#dfa-graphviz-canvas svg') as SVGSVGElement | null;
-    if (!svgElement) return;
-    try {
-      const targetName = getDiagramFileName(fileName, 'png');
-      await downloadPngFile(svgElement, targetName, { isDarkMode, scale: 2 });
-    } catch {
-      setError("No se pudo generar la imagen PNG del diagrama.");
-    }
-  };
-
-  const handleExit = () => {
-    if (typeof window !== 'undefined') {
-      try {
-        window.close();
-      } catch {
-        // En caso de restricciones del navegador
-      }
-    }
+  const handleCloseDFA = () => {
     setDfa(null);
     setLiveDfa(null);
     setSimulation(null);
@@ -188,6 +177,17 @@ export default function Home() {
     setLiveError(null);
     setIsPlaying(false);
     setResults({});
+  };
+
+  const handleExit = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.close();
+      } catch {
+        // En caso de restricciones del navegador
+      }
+    }
+    handleCloseDFA();
   };
 
   const processContent = (content: string, name?: string) => {
@@ -356,8 +356,6 @@ export default function Home() {
           onNewClick={handleCreateNew}
           onSaveClick={handleSaveFile}
           onExitClick={handleExit}
-          onExportSvg={handleExportDiagramSvg}
-          onExportPng={handleExportDiagramPng}
           onLoadExample={(content, name) => processContent(content, name)}
           onShowAbout={() => setShowAbout(true)}
           onShowHelp={() => setShowHelp(true)}
@@ -472,22 +470,11 @@ export default function Home() {
                   Descargar .txt
                 </button>
                 <button
-                  id="btn-download-diagram-bar"
-                  onClick={handleExportDiagramSvg}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors flex items-center space-x-1"
-                  title="Descargar diagrama en formato vectorial SVG"
-                >
-                  <svg className="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  <span>Descargar Diagrama</span>
-                </button>
-                <button
                   id="btn-close-active-dfa"
-                  onClick={handleExit}
+                  onClick={handleCloseDFA}
                   className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 transition-colors"
+                  title="Cerrar el autómata activo y volver a la pantalla de carga"
+                  aria-label="Cerrar autómata activo"
                 >
                   Cerrar
                 </button>
@@ -554,7 +541,10 @@ export default function Home() {
                     <button 
                       id="btn-apply-and-simulate"
                       onClick={handleApplyAndSimulate}
-                      className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-all flex items-center space-x-1.5"
+                      disabled={rawText.trim().length === 0}
+                      className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-all flex items-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="Procesar definición formal e iniciar simulación"
+                      aria-label="Iniciar simulación del autómata formal"
                     >
                       <span>Simular</span>
                       <svg className="w-3.5 h-3.5 stroke-current fill-none" aria-hidden="true" viewBox="0 0 24 24" strokeWidth="2.5">
@@ -604,13 +594,6 @@ export default function Home() {
                         <p className="font-semibold text-[11px] text-amber-900 dark:text-amber-100 mb-0.5">Aviso de Definición Formal</p>
                         <p className="font-mono text-[11px] leading-relaxed opacity-95">{liveError}</p>
                       </div>
-                      <button
-                        id="btn-auto-align-inline"
-                        onClick={handleAutoAlignTransitions}
-                        className="px-2 py-1 text-[10px] font-sans font-medium rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-900 dark:text-amber-100 border border-amber-500/30 transition-colors flex-shrink-0"
-                      >
-                        Auto-Ajustar
-                      </button>
                     </div>
                   )}
                 </div>
@@ -866,7 +849,7 @@ export default function Home() {
                         onClick={handlePrev}
                         disabled={simulation?.currentStepIndex === 0 || isPlaying}
                         aria-label="Paso anterior (retroceder)"
-                        className="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors disabled:opacity-40"
+                        className="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Anterior
                       </button>
@@ -875,7 +858,7 @@ export default function Home() {
                         onClick={handleNext}
                         disabled={isFinished || isPlaying}
                         aria-label="Paso siguiente (avanzar)"
-                        className="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors disabled:opacity-40"
+                        className="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Siguiente
                       </button>
@@ -903,7 +886,7 @@ export default function Home() {
                         onClick={() => setIsPlaying(!isPlaying)}
                         disabled={isFinished}
                         aria-label={isPlaying ? 'Pausar simulación automática' : 'Reproducir simulación automáticamente'}
-                        className={`px-6 py-2 rounded-xl text-xs font-semibold text-white transition-all shadow-xs disabled:opacity-40 ${
+                        className={`px-6 py-2 rounded-xl text-xs font-semibold text-white transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed ${
                           isPlaying
                             ? 'bg-amber-600 hover:bg-amber-500'
                             : 'bg-blue-600 hover:bg-blue-500'

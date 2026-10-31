@@ -1,7 +1,7 @@
 // src/components/TopMenu.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { dfaExamples } from '../utils/examples';
 
 interface TopMenuProps {
@@ -9,8 +9,6 @@ interface TopMenuProps {
   onNewClick: () => void;
   onSaveClick: () => void;
   onExitClick: () => void;
-  onExportSvg?: () => void;
-  onExportPng?: () => void;
   onLoadExample: (content: string, name?: string) => void;
   onShowAbout: () => void;
   onShowHelp: () => void;
@@ -29,8 +27,6 @@ export default function TopMenu({
   onNewClick,
   onSaveClick,
   onExitClick,
-  onExportSvg,
-  onExportPng,
   onLoadExample,
   onShowAbout,
   onShowHelp,
@@ -50,6 +46,17 @@ export default function TopMenu({
   };
 
   const closeDropdown = () => setActiveDropdown(null);
+
+  useEffect(() => {
+    if (!activeDropdown) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveDropdown(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeDropdown]);
 
   return (
     <header 
@@ -91,7 +98,7 @@ export default function TopMenu({
                 id="menu-archivo-dropdown"
                 role="menu"
                 aria-label="Opciones de archivo"
-                className="absolute top-full left-0 mt-1.5 w-56 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-xl py-1.5 text-xs z-50"
+                className="absolute top-full left-0 mt-1.5 w-52 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-xl py-1.5 text-xs z-50"
               >
                 <button
                   id="item-abrir-archivo"
@@ -114,28 +121,9 @@ export default function TopMenu({
                   role="menuitem"
                   onClick={() => { onSaveClick(); closeDropdown(); }}
                   disabled={!hasActiveDFA}
-                  className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-inherit"
+                  className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-inherit disabled:cursor-not-allowed"
                 >
                   <span>Guardar Archivo (.txt)</span>
-                </button>
-                <div className="border-t border-slate-200 dark:border-slate-700/70 my-1" role="separator"></div>
-                <button
-                  id="item-exportar-diagrama-svg"
-                  role="menuitem"
-                  onClick={() => { onExportSvg?.(); closeDropdown(); }}
-                  disabled={!hasActiveDFA}
-                  className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-inherit"
-                >
-                  <span>Descargar Diagrama (SVG)</span>
-                </button>
-                <button
-                  id="item-exportar-diagrama-png"
-                  role="menuitem"
-                  onClick={() => { onExportPng?.(); closeDropdown(); }}
-                  disabled={!hasActiveDFA}
-                  className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-inherit"
-                >
-                  <span>Descargar Diagrama (PNG)</span>
                 </button>
                 <div className="border-t border-slate-200 dark:border-slate-700/70 my-1" role="separator"></div>
                 <button
@@ -326,6 +314,7 @@ export default function TopMenu({
               onClick={onShowInstall}
               className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-all flex items-center space-x-1.5"
               title="Instalar en Windows como aplicación de escritorio independiente"
+              aria-label="Instalar en Windows como aplicación de escritorio independiente"
             >
               <svg className="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
