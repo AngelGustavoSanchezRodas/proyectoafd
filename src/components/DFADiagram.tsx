@@ -1,4 +1,3 @@
-// src/components/DFADiagram.tsx
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
@@ -7,7 +6,6 @@ import { downloadSvgFile, downloadPngFile, getDiagramFileName } from '../utils/e
 
 type GraphvizInstance = Awaited<ReturnType<typeof Graphviz.load>>;
 
-// Instancia singleton precalentada en memoria para renderizado instantáneo
 let graphvizInstance: GraphvizInstance | null = null;
 let graphvizPromise: Promise<GraphvizInstance> | null = null;
 
@@ -22,7 +20,6 @@ function getGraphviz(): Promise<GraphvizInstance> {
   return graphvizPromise;
 }
 
-// Iniciar pre-carga en cliente si estamos en navegador
 if (typeof window !== 'undefined') {
   getGraphviz().catch(() => {});
 }
@@ -145,7 +142,6 @@ export default function DFADiagram({
 
   return (
     <div className={`w-full ${heightClass} ${className} rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 mac-panel-vibrancy flex items-center justify-center p-4 overflow-hidden relative group transition-all duration-150`}>
-      {/* Patrón de cuadrícula tipo lienzo macOS */}
       <div 
         className="absolute inset-0 opacity-[0.22] dark:opacity-[0.12] pointer-events-none"
         style={{
@@ -160,14 +156,13 @@ export default function DFADiagram({
         <div 
           id="dfa-graphviz-canvas"
           role="img"
-          aria-label="Grafo de estados y transiciones generado mediante Graphviz"
+          aria-label="Grafo de estados y transiciones"
           ref={containerRef} 
           style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
           className="w-full h-full flex items-center justify-center z-0 transition-transform duration-100" 
         />
       )}
 
-      {/* Barra de herramientas flotante estilo macOS en la esquina inferior */}
       <div 
         role="toolbar"
         aria-label="Controles de zoom y exportación del diagrama"
@@ -208,10 +203,8 @@ export default function DFADiagram({
           </svg>
         </button>
 
-        {/* Separador de sección */}
         <div className="w-px h-3.5 bg-slate-300 dark:bg-slate-600 mx-0.5" aria-hidden="true" />
 
-        {/* Menú de Descarga */}
         <div className="relative" ref={menuRef}>
           <button
             id="btn-download-diagram-menu"
@@ -222,8 +215,8 @@ export default function DFADiagram({
                 ? 'bg-blue-600 text-white'
                 : 'hover:bg-black/10 dark:hover:bg-white/15 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed'
             }`}
-            title="Descargar diagrama dibujado"
-            aria-label="Descargar diagrama dibujado en formato SVG o PNG"
+            title="Descargar diagrama"
+            aria-label="Descargar diagrama en formato SVG o PNG"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
           >

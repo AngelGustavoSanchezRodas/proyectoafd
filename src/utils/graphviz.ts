@@ -1,4 +1,3 @@
-// src/utils/graphviz.ts
 import { DFA, SimulationState } from '../types/dfa';
 
 export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA | null, isDarkMode: boolean = false): string {
@@ -9,10 +8,9 @@ export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA
   const currentState = currentStep?.currentState;
   const activeTransition = currentStep?.transitionUsed;
 
-  // Paletas de color dinámicas según el tema
-  const defaultStroke = isDarkMode ? '"#94a3b8"' : 'black'; // slate-400 o negro
-  const defaultText = isDarkMode ? '"#e2e8f0"' : 'black'; // slate-200 o negro
-  const defaultFill = isDarkMode ? '"#1e293b"' : 'white'; // slate-800 o blanco
+  const defaultStroke = isDarkMode ? '"#94a3b8"' : 'black';
+  const defaultText = isDarkMode ? '"#e2e8f0"' : 'black';
+  const defaultFill = isDarkMode ? '"#1e293b"' : 'white';
 
   let dot = 'digraph DFA {\n';
   dot += '  graph [rankdir=LR, bgcolor="transparent", pad="0.3", nodesep="0.6", ranksep="0.7"];\n';
@@ -27,7 +25,7 @@ export function generateDotCode(simulation: SimulationState | null, baseDfa: DFA
 
     const shape = isAccept ? 'doublecircle' : 'circle';
     const style = isCurrent ? 'filled' : 'filled';
-    const fillcolor = isCurrent ? '"#fde047"' : defaultFill; // Amarillo si es actual
+    const fillcolor = isCurrent ? '"#fde047"' : defaultFill;
     const color = isCurrent ? '"#ca8a04"' : defaultStroke;
     const fontcolor = isCurrent ? 'black' : defaultText;
 

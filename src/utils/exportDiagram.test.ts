@@ -1,4 +1,3 @@
-// src/utils/exportDiagram.test.ts
 import { describe, it, expect } from 'vitest';
 import { getDiagramFileName, getSvgDimensions } from './exportDiagram';
 

@@ -1,4 +1,3 @@
-// src/components/TapeViewer.tsx
 import { SimulationState } from '../types/dfa';
 
 interface TapeViewerProps {
@@ -19,7 +18,7 @@ export default function TapeViewer({ simulation }: TapeViewerProps) {
     >
       <div className="flex items-center justify-between">
         <h2 className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">
-          Cinta de Entrada (Cabezal de Lectura)
+          Cinta de Entrada
         </h2>
         <span 
           aria-live="polite"
@@ -38,7 +37,6 @@ export default function TapeViewer({ simulation }: TapeViewerProps) {
           aria-label="Celdas de la cinta de símbolos"
           className="flex items-center space-x-2.5 py-1"
         >
-          {/* Indicador de inicio de cinta */}
           <div 
             aria-hidden="true" 
             className="h-10 w-7 rounded-l-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400 font-mono text-xs select-none"
@@ -84,7 +82,6 @@ export default function TapeViewer({ simulation }: TapeViewerProps) {
             })
           )}
 
-          {/* Indicador de fin de cinta */}
           <div 
             aria-hidden="true" 
             className="h-10 w-7 rounded-r-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400 font-mono text-xs select-none"

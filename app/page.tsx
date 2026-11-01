@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import { useState, useMemo, ChangeEvent, useEffect, useRef, DragEvent, useSyncExternalStore } from "react";
@@ -350,7 +349,6 @@ export default function Home() {
     <div className={isDarkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
         
-        {/* Barra Superior con Estética macOS */}
         <TopMenu 
           onOpenClick={triggerFileInput}
           onNewClick={handleCreateNew}
@@ -385,19 +383,16 @@ export default function Home() {
           aria-label="Cargar archivo de definición formal en formato texto"
         />
 
-        {/* Contenido Principal con Accesibilidad Semántica y Landmark */}
         <main 
           id="main-content"
           role="main"
           tabIndex={-1}
           className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-1 flex flex-col space-y-6 focus:outline-none"
         >
-          {/* Título Principal Semántico Oculto para Lectores de Pantalla y SEO */}
           <h1 className="sr-only">
             Simulador de Autómatas Finitos Deterministas (AFD)
           </h1>
           
-          {/* Alerta de Error con Estética macOS */}
           {error && (
             <div 
               id="alert-system-notification"
@@ -409,7 +404,7 @@ export default function Home() {
                 !
               </div>
               <div className="flex-1">
-                <p className="font-semibold mb-0.5">Aviso del Sistema</p>
+                <p className="font-semibold mb-0.5">Aviso</p>
                 <p className="opacity-90">{error}</p>
               </div>
               <button 
@@ -482,23 +477,21 @@ export default function Home() {
             </section>
           )}
 
-          {/* VISTA DEL EDITOR: STUDIO EN VIVO (EDITOR Y DIAGRAMA EN TIEMPO REAL) */}
+          {/* Editor y Diagrama */}
           {viewMode === 'editor' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch flex-1">
               
-              {/* Columna Izquierda: Editor de Código Formal */}
               <section 
                 id="section-code-editor"
                 aria-label="Editor formal de autómata"
                 className="lg:col-span-6 flex flex-col bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs overflow-hidden"
               >
                 
-                {/* Cabecera del Editor */}
                 <div className="px-4 py-3 bg-slate-100/70 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between select-none">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-blue-500" aria-hidden="true"></span>
                     <h2 className="font-semibold text-xs tracking-tight text-slate-900 dark:text-slate-100">
-                      Editor Formal (.txt)
+                      Editor de Definición (.txt)
                     </h2>
                     
                     {/* Badge de Estado de Sintaxis */}
@@ -591,7 +584,7 @@ export default function Home() {
                         !
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-[11px] text-amber-900 dark:text-amber-100 mb-0.5">Aviso de Definición Formal</p>
+                        <p className="font-semibold text-[11px] text-amber-900 dark:text-amber-100 mb-0.5">Aviso</p>
                         <p className="font-mono text-[11px] leading-relaxed opacity-95">{liveError}</p>
                       </div>
                     </div>
@@ -675,7 +668,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* VISTA SIMULADOR: PANTALLA INICIAL (EMPTY STATE CON ESTÉTICA MACOS) */}
+          {/* Pantalla Inicial */}
           {viewMode === 'simulator' && !dfa && (
             <section 
               id="section-empty-loader"
@@ -683,7 +676,6 @@ export default function Home() {
               className="flex-1 flex flex-col items-center justify-center py-12 px-4"
             >
               
-              {/* Tarjeta Central de Carga */}
               <div 
                 id="dropzone-automata-upload"
                 className={`w-full max-w-2xl rounded-3xl p-10 border-2 transition-all duration-200 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-xs flex flex-col items-center text-center ${
@@ -757,14 +749,12 @@ export default function Home() {
             </section>
           )}
 
-          {/* VISTA SIMULADOR: PANELES ACTIVOS CON EL AUTÓMATA */}
+          {/* Vista Simulador */}
           {viewMode === 'simulator' && dfa && (
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
               
-              {/* Columna Izquierda: Diagrama y Cinta de Simulación (8 cols) */}
               <div className="xl:col-span-8 flex flex-col space-y-6">
                 
-                {/* Tarjeta del Diagrama de Estados */}
                 <section 
                   id="section-state-diagram-card"
                   aria-label="Visualización del grafo de estados"
@@ -774,11 +764,10 @@ export default function Home() {
                     <div className="flex items-center space-x-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-blue-500" aria-hidden="true"></span>
                       <h2 className="font-semibold text-xs tracking-tight text-slate-900 dark:text-slate-100">
-                        Grafo de Estados (Graphviz Wasm)
+                        Grafo de Estados
                       </h2>
                     </div>
                     
-                    {/* Indicador de Estado del Autómata */}
                     <div 
                       id="badge-simulation-status"
                       role="status"
@@ -797,7 +786,7 @@ export default function Home() {
                       <span>
                         {simulation?.status === 'accepted' && 'Cadena Aceptada'}
                         {simulation?.status === 'rejected' && 'Cadena Rechazada'}
-                        {(simulation?.status === 'idle' || simulation?.status === 'running') && 'Computando'}
+                        {(simulation?.status === 'idle' || simulation?.status === 'running') && 'En ejecución'}
                       </span>
                     </div>
                   </div>
@@ -815,11 +804,8 @@ export default function Home() {
                   aria-label="Cinta y controles de simulación"
                   className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs p-6 flex flex-col space-y-5"
                 >
-                  
-                  {/* Vista de la Cinta Desacoplada */}
                   <TapeViewer simulation={simulation} />
 
-                  {/* Inspector de Transición Matemática */}
                   <div 
                     id="box-step-explanation"
                     role="region"
@@ -831,11 +817,9 @@ export default function Home() {
                     <p>{getStepExplanation(simulation, dfa)}</p>
                   </div>
 
-                  {/* Barra de Controles de Ejecución */}
                   <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-200/70 dark:border-slate-800/70">
                     
-                    {/* Botones de Paso a Paso */}
-                    <div className="flex items-center space-x-2" role="group" aria-label="Navegación en el tiempo de la simulación">
+                    <div className="flex items-center space-x-2" role="group" aria-label="Navegación de simulación">
                       <button
                         id="btn-sim-reset"
                         onClick={handleReset}
@@ -930,7 +914,7 @@ export default function Home() {
 
         </main>
 
-        {/* --- MODALES CON ESTÉTICA MACOS (DIALOG SHEET) DESACOPLADOS --- */}
+        {/* Modales */}
         <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
         <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
         <GuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />

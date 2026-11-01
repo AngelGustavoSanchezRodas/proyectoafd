@@ -1,4 +1,3 @@
-// src/utils/explanation.test.ts
 import { describe, it, expect } from 'vitest';
 import { getStepExplanation } from './explanation';
 import { DFA, SimulationState } from '../types/dfa';

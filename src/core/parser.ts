@@ -1,11 +1,7 @@
-// src/core/parser.ts
 import { DFA, ParseResult } from '../types/dfa';
 
 export type { ParseResult };
 
-/**
- * Limpia y extrae tokens individuales eliminando llaves, corchetes, comillas y delimitadores.
- */
 function cleanTokens(raw: string): string[] {
   const noEnclosing = raw.replace(/[{}[\]()]/g, ' ').trim();
   if (!noEnclosing) return [];
@@ -23,16 +19,10 @@ function cleanTokens(raw: string): string[] {
     .filter(Boolean);
 }
 
-/**
- * Limpia el nombre de un estado removiendo marcadores convencionales como flechas o asteriscos.
- */
 function cleanStateName(name: string): string {
   return name.trim().replace(/^(?:->|>|\*)+/, '').replace(/['"]/g, '').trim();
 }
 
-/**
- * Comprueba si una cadena representa un estado trampa, nulo o transición vacía.
- */
 function isNullOrTrapDestination(dest: string): boolean {
   const lower = dest.toLowerCase().trim();
   return (
@@ -52,14 +42,10 @@ function isNullOrTrapDestination(dest: string): boolean {
   );
 }
 
-/**
- * Descompone una línea de cadena a analizar tolerando comas, espacios, cadenas pegadas o epsilon.
- */
 function parseTestString(rawLine: string, symbols: string[]): string[] {
   let line = rawLine.trim();
   if (!line) return [];
 
-  // Quitar comillas externas si abarcan toda la cadena
   if ((line.startsWith('"') && line.endsWith('"')) || (line.startsWith("'") && line.endsWith("'"))) {
     line = line.substring(1, line.length - 1).trim();
   }
@@ -97,7 +83,6 @@ function parseTestString(rawLine: string, symbols: string[]): string[] {
     return line.split(/\s+/).map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
   }
 
-  // Si es una palabra continua sin separadores (ej. "010" o "1101")
   const allSingleChar = symbols.length > 0 && symbols.every(s => s.length === 1);
   if (allSingleChar) {
     return line.split('').filter(ch => !/\s/.test(ch));
@@ -119,16 +104,12 @@ function parseTestString(rawLine: string, symbols: string[]): string[] {
   return result;
 }
 
-/**
- * Analizador sintáctico tolerante y de máxima resiliencia para definiciones formales de AFD.
- */
 export function parseDFATolerant(input: string): ParseResult {
-  // Limpieza de caracteres BOM y normalización de saltos de línea
   const cleanInput = input
     .replace(/^\uFEFF/, '')
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
-    .replace(/\/\*[\s\S]*?\*\//g, ''); // Remover comentarios de bloque /* ... */
+    .replace(/\/\*[\s\S]*?\*\//g, '');
 
   const rawLines = cleanInput.split('\n');
 
@@ -164,20 +145,16 @@ export function parseDFATolerant(input: string): ParseResult {
   };
 
   for (const rawLine of rawLines) {
-    // Remover comentarios de fin de línea: //, #, %
     const lineWithoutComment = rawLine.split(/(?:\/\/|#|%)/)[0].trim();
     if (!lineWithoutComment) continue;
 
     const lower = lineWithoutComment.toLowerCase();
 
-    // Detección de encabezado de Alfabeto / Símbolos
     if (/^(?:s[íi]mbolos?|simbolos?|alfabeto|sigma|\u03A3|\u03C3|alphabet|tokens?|entradas?|inputs?)\b\s*[:=]/i.test(lower)) {
       const colonIdx = lineWithoutComment.search(/[:=]/);
       const raw = colonIdx !== -1 ? lineWithoutComment.substring(colonIdx + 1) : '';
       symbols = cleanTokens(raw);
-    }
-    // Detección de encabezado de Estado Inicial
-    else if (/^(?:estado\s+inicial|inicial|start\s*(?:state)?|initial\s*(?:state)?|inicio|origen|partida|estado\s+de\s+partida|q_?0)\b\s*[:=]/i.test(lower)) {
+    } else if (/^(?:estado\s+inicial|inicial|start\s*(?:state)?|initial\s*(?:state)?|inicio|origen|partida|estado\s+de\s+partida|q_?0)\b\s*[:=]/i.test(lower)) {
       const colonIdx = lineWithoutComment.search(/[:=]/);
       const raw = colonIdx !== -1 ? lineWithoutComment.substring(colonIdx + 1) : '';
       const tokens = cleanTokens(raw).map(cleanStateName);
@@ -185,9 +162,7 @@ export function parseDFATolerant(input: string): ParseResult {
         initialState = tokens[0];
         inferredStatesSet.add(initialState);
       }
-    }
-    // Detección de encabezado de Estados de Aceptación / Finales
-    else if (/^(?:estados?\s+de\s+aceptaci[óo]n|aceptaci[óo]n|aceptacion|estados?\s+finales?|finales?|accept\s*(?:states?)?|f|final)\b\s*[:=]/i.test(lower)) {
+    } else if (/^(?:estados?\s+de\s+aceptaci[óo]n|aceptaci[óo]n|aceptacion|estados?\s+finales?|finales?|accept\s*(?:states?)?|f|final)\b\s*[:=]/i.test(lower)) {
       const colonIdx = lineWithoutComment.search(/[:=]/);
       const raw = colonIdx !== -1 ? lineWithoutComment.substring(colonIdx + 1) : '';
       const tokens = cleanTokens(raw);
@@ -198,9 +173,7 @@ export function parseDFATolerant(input: string): ParseResult {
         acceptStates.add(s);
         inferredStatesSet.add(s);
       });
-    }
-    // Detección de encabezado de Conjunto de Estados (Q)
-    else if (/^(?:conjunto\s+de\s+estados|estados?|states?|nodos?|v[ée]rtices?|vertices?|q)\b\s*[:=]/i.test(lower)) {
+    } else if (/^(?:conjunto\s+de\s+estados|estados?|states?|nodos?|v[ée]rtices?|vertices?|q)\b\s*[:=]/i.test(lower)) {
       const colonIdx = lineWithoutComment.search(/[:=]/);
       const raw = colonIdx !== -1 ? lineWithoutComment.substring(colonIdx + 1) : '';
       states = cleanTokens(raw).map(cleanStateName);
@@ -210,19 +183,12 @@ export function parseDFATolerant(input: string): ParseResult {
           transitions[state] = {};
         }
       });
-    }
-    // Detección de sección de Transiciones
-    else if (/^(?:tabla\s+de\s+transiciones?|transiciones?|delta|\u0394|\u03B4|funci[óo]n\s+de\s+transici[óo]n|funcion\s+de\s+transicion|transitions?|reglas?)\s*[:=]?\s*$/i.test(lower)) {
+    } else if (/^(?:tabla\s+de\s+transiciones?|transiciones?|delta|\u0394|\u03B4|funci[óo]n\s+de\s+transici[óo]n|funcion\s+de\s+transicion|transitions?|reglas?)\s*[:=]?\s*$/i.test(lower)) {
       currentSection = 'transiciones';
       transitionRowIndex = 0;
-    }
-    // Detección de sección de Cadenas de Prueba
-    else if (/^(?:cadenas?(\s+a\s+analizar|\s+de\s+prueba|\s+a\s+evaluar)?|strings?|casos\s+de\s+prueba|pruebas?|test\s*(?:strings?)?|palabras?|entradas?|words?|w)\s*[:=]?\s*$/i.test(lower)) {
+    } else if (/^(?:cadenas?(\s+a\s+analizar|\s+de\s+prueba|\s+a\s+evaluar)?|strings?|casos\s+de\s+prueba|pruebas?|test\s*(?:strings?)?|palabras?|entradas?|words?|w)\s*[:=]?\s*$/i.test(lower)) {
       currentSection = 'cadenas';
-    }
-    // Procesamiento de líneas de datos
-    else {
-      // Inferencia reactiva de sección si no se declaró explícitamente "Transiciones:"
+    } else {
       if (currentSection !== 'cadenas') {
         const looksLikeTransition =
           lineWithoutComment.includes('->') ||
@@ -238,7 +204,6 @@ export function parseDFATolerant(input: string): ParseResult {
       if (currentSection === 'transiciones') {
         const clean = lineWithoutComment;
 
-        // Si la primera fila bajo transiciones coincide exactamente con los símbolos del alfabeto, ignorar encabezado
         if (transitionRowIndex === 0 && symbols.length > 0) {
           const rowTokens = cleanTokens(clean);
           const isHeader = rowTokens.length === symbols.length && rowTokens.every((t, i) => t === symbols[i]);
@@ -247,7 +212,7 @@ export function parseDFATolerant(input: string): ParseResult {
           }
         }
 
-        // 1. Patrón flecha incrustada: "A -0-> B", "A --0--> B", "A -[0]-> B", "A -(0)-> B"
+        // Transicion con flecha: A -0-> B
         const arrowMatch = clean.match(/^([A-Za-z0-9_*-]+)\s*-+\[?\(?([^\s\])]+)\)?\]?-+>\s*([A-Za-z0-9_*-]+)$/);
         if (arrowMatch) {
           const [, from, symGroup, to] = arrowMatch;
@@ -258,7 +223,7 @@ export function parseDFATolerant(input: string): ParseResult {
           continue;
         }
 
-        // 2. Patrón notación funcional: "delta(A, 0) = B", "δ(A, 0) = B", "(A, 0) = B", "(A, 0) -> B", "d(A, 0) = B"
+        // Notacion funcional: delta(A, 0) = B
         const funcMatch = clean.match(/^(?:(?:delta|δ|d)\s*)?\(\s*([A-Za-z0-9_*-]+)\s*[,;]\s*([^,;)]+)\s*\)\s*(?:=|->)?\s*([A-Za-z0-9_*-]+)$/i);
         if (funcMatch) {
           const [, from, symRaw, to] = funcMatch;
@@ -269,7 +234,7 @@ export function parseDFATolerant(input: string): ParseResult {
           continue;
         }
 
-        // 3. Patrón flechas separadas: "A -> 0 -> B" o "A, 0 -> B"
+        // Flechas separadas: A -> 0 -> B
         if (clean.includes('->')) {
           const arrowParts = clean.split('->').map(s => s.trim()).filter(Boolean);
           if (arrowParts.length === 3) {
@@ -285,7 +250,7 @@ export function parseDFATolerant(input: string): ParseResult {
           }
         }
 
-        // 4. Patrón terna con comas, punto y coma, tabs o espacios: "A, 0, B"
+        // Formato terna: A, 0, B
         const tripletTokens = clean.replace(/->/g, ',').split(/[,;\t]/).map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
         if (tripletTokens.length === 3) {
           const [fromCandidate, symbolCandidate, toCandidate] = tripletTokens;
@@ -296,7 +261,7 @@ export function parseDFATolerant(input: string): ParseResult {
           continue;
         }
 
-        // 5. Patrón mapeo con dos puntos: "A: 0->B, 1->C" o "A: B, C"
+        // Mapeo con dos puntos: A: 0->B, 1->C
         if (clean.includes(':')) {
           const parts = clean.split(':');
           const prefix = cleanStateName(parts[0]);
@@ -324,7 +289,7 @@ export function parseDFATolerant(input: string): ParseResult {
           }
         }
 
-        // 6. Patrón matricial con origen explícito: "Q0, Q2, Q1" o implícito por orden de fila: "Q2, Q1"
+        // Formato matricial
         const rawTokens = cleanTokens(clean);
         if (rawTokens.length > 0) {
           let targetState = '';
@@ -354,7 +319,7 @@ export function parseDFATolerant(input: string): ParseResult {
               warnings.push(`Fila (${targetState}): Se indicaron ${dests.length} destinos pero el alfabeto define ${symbols.length}.`);
             }
           } else {
-            warnings.push(`Línea de transición no estructurada o no reconocida: '${clean}'.`);
+            warnings.push(`Línea no reconocida en transiciones: '${clean}'.`);
           }
         }
       } else if (currentSection === 'cadenas') {
@@ -364,45 +329,38 @@ export function parseDFATolerant(input: string): ParseResult {
     }
   }
 
-  // --- RECUPERACIÓN RESILIENTE ANTE DECLARACIONES INCOMPLETAS ---
-  // 1. Inferencia de estados si no fueron declarados explícitamente
-  if (states.length === 0) {
-    if (inferredStatesSet.size > 0) {
-      states = Array.from(inferredStatesSet);
-      warnings.push(`Conjunto de estados no declarado explícitamente; se infirieron automáticamente los estados: {${states.join(', ')}}.`);
-    }
+  // Deduccion de estados si no se definieron explicitamente
+  if (states.length === 0 && inferredStatesSet.size > 0) {
+    states = Array.from(inferredStatesSet);
+    warnings.push(`Estados inferidos a partir de las transiciones: {${states.join(', ')}}.`);
   }
 
-  // 2. Inferencia del alfabeto si no fue declarado explícitamente
-  if (symbols.length === 0) {
-    if (inferredSymbolsSet.size > 0) {
-      symbols = Array.from(inferredSymbolsSet);
-      warnings.push(`Alfabeto no declarado explícitamente; se infirieron automáticamente los símbolos: {${symbols.join(', ')}}.`);
-    }
+  // Deduccion del alfabeto si no se definio explicitamente
+  if (symbols.length === 0 && inferredSymbolsSet.size > 0) {
+    symbols = Array.from(inferredSymbolsSet);
+    warnings.push(`Alfabeto inferido a partir de las transiciones: {${symbols.join(', ')}}.`);
   }
 
-  // 3. Inferencia de estado inicial si no fue declarado explícitamente
+  // Estado inicial por defecto si se omitio
   if (!initialState && states.length > 0) {
     initialState = states[0];
-    warnings.push(`Estado inicial no declarado explícitamente; se asumió por defecto '${initialState}'.`);
+    warnings.push(`Estado inicial asignado por defecto: '${initialState}'.`);
   }
 
-  // 4. Incorporación resiliente de estados descubiertos en transiciones que no figuraban en 'Estados:'
+  // Incorporar estados referenciados en transiciones
   inferredStatesSet.forEach(st => {
     if (!states.includes(st)) {
       states.push(st);
-      warnings.push(`El estado '${st}' detectado en las transiciones fue incorporado automáticamente al conjunto de estados.`);
+      warnings.push(`El estado '${st}' fue agregado al conjunto de estados.`);
     }
   });
 
-  // Asegurar que cada estado tenga su registro en transitions
   states.forEach(st => {
     if (!transitions[st]) {
       transitions[st] = {};
     }
   });
 
-  // Validaciones semánticas
   if (states.length === 0) {
     warnings.push("No se han definido estados en el autómata.");
   }
@@ -421,7 +379,6 @@ export function parseDFATolerant(input: string): ParseResult {
     }
   });
 
-  // Detección pedagógica de transiciones no declaradas (función parcial)
   const missingTransitions: string[] = [];
   states.forEach(state => {
     symbols.forEach(sym => {
@@ -433,10 +390,9 @@ export function parseDFATolerant(input: string): ParseResult {
   });
 
   if (missingTransitions.length > 0) {
-    warnings.push(`Autómata con función parcial: Faltan ${missingTransitions.length} transiciones (${missingTransitions.join(', ')}). Al simular, cualquier transición no definida rechazará la cadena.`);
+    warnings.push(`Función de transición parcial: Faltan ${missingTransitions.length} transiciones (${missingTransitions.join(', ')}).`);
   }
 
-  // Validación de aptitud para simulación
   const hasFatalErrors =
     states.length === 0 ||
     symbols.length === 0 ||

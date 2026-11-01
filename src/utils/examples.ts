@@ -1,4 +1,3 @@
-// src/utils/examples.ts
 export const dfaExamples = [
   {
     id: 1,

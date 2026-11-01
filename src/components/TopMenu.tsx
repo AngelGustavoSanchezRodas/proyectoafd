@@ -1,4 +1,3 @@
-// src/components/TopMenu.tsx
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -67,12 +66,10 @@ export default function TopMenu({
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         
-        {/* Menús de Navegación de la Aplicación */}
         <nav 
           aria-label="Menú principal de la aplicación" 
           className="flex items-center space-x-1 text-xs font-medium text-slate-700 dark:text-slate-300"
         >
-          
           {/* Menú Archivo */}
           <div className="relative">
             <button
@@ -185,7 +182,7 @@ export default function TopMenu({
             )}
           </div>
 
-          {/* Menú Acerca de... */}
+          {/* Menú Acerca de */}
           <div className="relative">
             <button
               id="btn-menu-acerca-de"
@@ -209,7 +206,7 @@ export default function TopMenu({
               <div 
                 id="menu-acerca-de-dropdown"
                 role="menu"
-                aria-label="Información institucional y ayuda"
+                aria-label="Información y ayuda"
                 className="absolute top-full left-0 mt-1.5 w-56 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-xl py-1.5 text-xs z-50"
               >
                 <button
@@ -226,7 +223,7 @@ export default function TopMenu({
                   onClick={() => { onShowHelp(); closeDropdown(); }}
                   className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  Ayuda (Manual de Usuario)
+                  Manual de Usuario
                 </button>
                 <div className="border-t border-slate-200 dark:border-slate-700/70 my-1" role="separator"></div>
                 <button
@@ -244,18 +241,14 @@ export default function TopMenu({
                   onClick={() => { onShowInstall(); closeDropdown(); }}
                   className="w-full text-left px-3.5 py-2 hover:bg-blue-600 hover:text-white transition-colors"
                 >
-                  Instalar en Escritorio (Windows)
+                  Instalar en Escritorio
                 </button>
               </div>
             )}
           </div>
-
         </nav>
 
-        {/* Lado Derecho: Control Segmentado y Tema */}
         <div className="flex items-center space-x-3">
-          
-          {/* Selector Segmentado de Vista (Simulador / Editor) */}
           <div 
             role="group" 
             aria-label="Selector de modo de vista"
@@ -287,7 +280,6 @@ export default function TopMenu({
             </button>
           </div>
 
-          {/* Botón de Alternancia de Tema (Modo Claro / Oscuro) */}
           <button
             id="btn-toggle-tema"
             onClick={toggleTheme}
@@ -307,14 +299,13 @@ export default function TopMenu({
             )}
           </button>
 
-          {/* Botón de Instalación como App de Escritorio */}
           {!isStandalone && (
             <button
               id="btn-instalar-app-escritorio"
               onClick={onShowInstall}
               className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-all flex items-center space-x-1.5"
-              title="Instalar en Windows como aplicación de escritorio independiente"
-              aria-label="Instalar en Windows como aplicación de escritorio independiente"
+              title="Instalar como aplicación de escritorio"
+              aria-label="Instalar como aplicación de escritorio"
             >
               <svg className="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -328,7 +319,6 @@ export default function TopMenu({
 
       </div>
 
-      {/* Capa de fondo para cerrar menús desplegables */}
       {activeDropdown && (
         <div className="fixed inset-0 z-30" onClick={closeDropdown} aria-hidden="true"></div>
       )}

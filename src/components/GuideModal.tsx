@@ -1,4 +1,3 @@
-// src/components/GuideModal.tsx
 interface GuideModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,7 +42,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-xs focus:ring-2 focus:ring-blue-400"
           >
-            Cerrar Guía
+            Cerrar
           </button>
         </div>
       </div>

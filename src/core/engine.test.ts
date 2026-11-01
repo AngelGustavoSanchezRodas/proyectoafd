@@ -1,4 +1,3 @@
-// src/core/engine.test.ts
 import { describe, it, expect } from 'vitest';
 import { parseDFA, parseDFATolerant } from './parser';
 import { DFAEngine } from './engine';

@@ -1,4 +1,3 @@
-// src/core/engine.ts
 import { DFA, SimulationState, SimulationStep, SimulationStatus } from '../types/dfa';
 
 export class DFAEngine {
@@ -8,15 +7,12 @@ export class DFAEngine {
     this.dfa = dfa;
   }
 
-  /**
-   * Prepara la simulación para una cadena específica.
-   */
   public initialize(stringIndex: number = 0): SimulationState {
     let currentString: string[] = [];
 
     if (this.dfa.testStrings && this.dfa.testStrings.length > 0) {
       if (stringIndex < 0 || stringIndex >= this.dfa.testStrings.length) {
-        throw new Error("Índice de cadena inválido.");
+        throw new Error("Índice de cadena fuera de rango.");
       }
       currentString = this.dfa.testStrings[stringIndex];
     }
@@ -25,7 +21,7 @@ export class DFAEngine {
       currentState: this.dfa.initialState,
       symbolRead: null,
       transitionUsed: null,
-      stringIndex: -1 // -1 significa que aún no hemos leído el símbolo 0
+      stringIndex: -1
     };
 
     return {
@@ -37,11 +33,7 @@ export class DFAEngine {
     };
   }
 
-  /**
-   * Avanza la simulación consumiendo exactamente un símbolo.
-   */
   public stepForward(state: SimulationState): SimulationState {
-    // Si ya terminó o hay error, no hacemos nada
     if (state.status === 'accepted' || state.status === 'rejected' || state.status === 'error') {
       return state;
     }
@@ -49,7 +41,6 @@ export class DFAEngine {
     const currentStep = state.history[state.currentStepIndex];
     const nextStringIndex = currentStep.stringIndex + 1;
 
-    // ¿La cadena está vacía? Evaluamos el estado inicial directamente.
     if (state.currentString.length === 0) {
       const isAccepted = this.dfa.acceptStates.has(currentStep.currentState);
       return { ...state, status: isAccepted ? 'accepted' : 'rejected' };
@@ -57,18 +48,16 @@ export class DFAEngine {
 
     const symbol = state.currentString[nextStringIndex];
     
-    // Validación: Símbolo ajeno al alfabeto
     if (!this.dfa.symbols.includes(symbol)) {
       return {
         ...state,
         status: 'error',
-        errorMessage: `El símbolo '${symbol}' no pertenece al alfabeto del AFD.`
+        errorMessage: `El símbolo '${symbol}' no pertenece al alfabeto del autómata.`
       };
     }
 
     const nextStateName = this.dfa.transitions[currentStep.currentState]?.[symbol];
     
-    // Transición inexistente (en un autómata con función parcial o no totalmente especificado)
     if (!nextStateName) {
       const haltStep: SimulationStep = {
         currentState: currentStep.currentState,
@@ -83,7 +72,7 @@ export class DFAEngine {
       return {
         ...state,
         status: 'rejected',
-        errorMessage: `Sin transición definida desde '${currentStep.currentState}' con el símbolo '${symbol}'. Cadena rechazada por función parcial.`,
+        errorMessage: `Sin transición definida desde '${currentStep.currentState}' con el símbolo '${symbol}'.`,
         history: newHistory,
         currentStepIndex: state.currentStepIndex + 1
       };
@@ -96,11 +85,9 @@ export class DFAEngine {
       stringIndex: nextStringIndex
     };
 
-    // Cortar el historial si habíamos retrocedido y ahora avanzamos de nuevo
     const newHistory = state.history.slice(0, state.currentStepIndex + 1);
     newHistory.push(nextStep);
 
-    // Determinar si terminamos de leer la cadena
     const isFinished = nextStringIndex === state.currentString.length - 1;
     let newStatus: SimulationStatus = 'running';
     
@@ -116,23 +103,17 @@ export class DFAEngine {
     };
   }
 
-  /**
-   * Retrocede una operación restaurando el estado previo.
-   */
   public stepBackward(state: SimulationState): SimulationState {
-    if (state.currentStepIndex === 0) return state; // Ya estamos en el inicio
+    if (state.currentStepIndex === 0) return state;
 
     return {
       ...state,
       status: state.currentStepIndex - 1 === 0 ? 'idle' : 'running',
       currentStepIndex: state.currentStepIndex - 1,
-      errorMessage: undefined // Limpiar errores si retrocedemos
+      errorMessage: undefined
     };
   }
 
-  /**
-   * Evalúa una cadena específica hasta el final y retorna el estado final de la simulación.
-   */
   public evaluateString(stringIndex: number): SimulationState {
     let state = this.initialize(stringIndex);
     while (state.status === 'idle' || state.status === 'running') {
@@ -141,9 +122,6 @@ export class DFAEngine {
     return state;
   }
 
-  /**
-   * Evalúa todas las cadenas de prueba del autómata y retorna un mapa con sus resultados.
-   */
   public evaluateAllStrings(): Record<number, 'accepted' | 'rejected' | 'error'> {
     const results: Record<number, 'accepted' | 'rejected' | 'error'> = {};
     for (let i = 0; i < this.dfa.testStrings.length; i++) {

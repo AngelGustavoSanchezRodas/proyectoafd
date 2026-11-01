@@ -1,4 +1,3 @@
-// src/components/StringsTable.tsx
 import { DFA } from '../types/dfa';
 
 interface StringsTableProps {
@@ -16,7 +15,6 @@ export default function StringsTable({ dfa, activeStringIndex, results, onSelect
       aria-label="Tabla de cadenas de prueba"
       className="bg-white/80 dark:bg-slate-900/80 mac-panel-vibrancy rounded-xl shadow-sm border border-black/10 dark:border-white/10 overflow-hidden transition-colors duration-200"
     >
-      {/* Cabecera estilo barra de herramientas de panel macOS */}
       <div className="bg-slate-100/80 dark:bg-slate-800/80 px-4 py-2.5 border-b border-black/5 dark:border-white/10 flex justify-between items-center select-none">
         <div className="flex items-center space-x-2">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500" aria-hidden="true"></span>
@@ -32,7 +30,7 @@ export default function StringsTable({ dfa, activeStringIndex, results, onSelect
               onClick={onEvaluateAll}
               disabled={dfa.testStrings.length === 0}
               className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white shadow-2xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Evaluar todas las cadenas automáticamente y mostrar resultados"
+              title="Evaluar todas las cadenas"
               aria-label="Evaluar todas las cadenas de prueba"
             >
               Evaluar Todas
@@ -113,7 +111,7 @@ export default function StringsTable({ dfa, activeStringIndex, results, onSelect
                     <button
                       id={`btn-select-string-${idx}`}
                       type="button"
-                      aria-label={`Seleccionar y cargar en cinta la cadena ${idx + 1}`}
+                      aria-label={`Seleccionar cadena ${idx + 1}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onSelectString(idx);

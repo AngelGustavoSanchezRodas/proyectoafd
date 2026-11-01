@@ -1,4 +1,3 @@
-// src/components/InstallModal.tsx
 "use client";
 
 interface InstallModalProps {

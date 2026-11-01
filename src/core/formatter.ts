@@ -1,14 +1,5 @@
-// src/core/formatter.ts
 import { parseDFATolerant } from './parser';
 
-/**
- * Ajusta automáticamente el texto de definición de un autómata:
- * 1. Si las transiciones usan formato de ternas (Origen, Símbolo, Destino),
- *    completa las ternas faltantes para garantizar que la función delta sea total.
- * 2. Si las transiciones usan formato matricial por filas, asegura que cada fila
- *    tenga exactamente los destinos correspondientes a los símbolos declarados.
- * 3. Limpia comas y espacios superfluos en las cadenas a analizar.
- */
 export function autoAlignDFAText(rawText: string): string {
   if (!rawText.trim()) return rawText;
 
@@ -18,7 +9,6 @@ export function autoAlignDFAText(rawText: string): string {
 
   const lines = rawText.split('\n');
   
-  // Detectar si la sección de transiciones contiene formato de terna (Origen, Símbolo, Destino)
   let usesTriplets = false;
   let inTransitionsCheck = false;
   for (const line of lines) {
@@ -59,7 +49,6 @@ export function autoAlignDFAText(rawText: string): string {
     if (lower.startsWith('cadenas a analizar:') || lower.startsWith('cadenas:')) {
       if (inTransitions) {
         if (usesTriplets) {
-          // Completar ternas faltantes
           for (const st of states) {
             for (const sym of symbols) {
               const key = `${st},${sym}`;

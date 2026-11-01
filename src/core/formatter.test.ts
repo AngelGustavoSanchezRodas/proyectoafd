@@ -1,4 +1,3 @@
-// src/core/formatter.test.ts
 import { describe, it, expect } from 'vitest';
 import { autoAlignDFAText } from './formatter';
 

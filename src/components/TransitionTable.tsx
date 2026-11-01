@@ -1,4 +1,3 @@
-// src/components/TransitionTable.tsx
 import { DFA, SimulationState } from '../types/dfa';
 
 interface TransitionTableProps {

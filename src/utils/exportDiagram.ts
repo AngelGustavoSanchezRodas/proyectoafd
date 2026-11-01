@@ -1,14 +1,9 @@
-// src/utils/exportDiagram.ts
-
 export interface ExportDiagramOptions {
   isDarkMode?: boolean;
   scale?: number;
   transparent?: boolean;
 }
 
-/**
- * Obtiene el nombre formateado para el archivo del diagrama a descargar.
- */
 export function getDiagramFileName(baseName: string | undefined, extension: 'svg' | 'png'): string {
   if (!baseName || !baseName.trim()) {
     return `diagrama_automata.${extension}`;
@@ -24,10 +19,6 @@ export function getDiagramFileName(baseName: string | undefined, extension: 'svg
   return `${finalName}_diagrama.${extension}`;
 }
 
-/**
- * Extrae las dimensiones lógicas de un elemento SVG basándose en viewBox,
- * atributos width/height o dimensiones rectangulares calculadas.
- */
 export function getSvgDimensions(svg: {
   getAttribute: (name: string) => string | null;
   getBoundingClientRect?: () => { width: number; height: number };
@@ -56,10 +47,6 @@ export function getSvgDimensions(svg: {
   return { width: 800, height: 600 };
 }
 
-/**
- * Serializa un elemento SVG a cadena de texto XML lista para exportar,
- * incorporando fondo coherente con el tema para garantizar máxima legibilidad.
- */
 export function serializeSvgForExport(
   svgElement: SVGSVGElement,
   options: ExportDiagramOptions = {}
@@ -102,9 +89,6 @@ export function serializeSvgForExport(
   return `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n${xmlContent}`;
 }
 
-/**
- * Descarga el diagrama SVG como archivo vectorial independiente.
- */
 export function downloadSvgFile(
   svgElement: SVGSVGElement,
   fileName: string = 'diagrama_automata.svg',
@@ -125,9 +109,6 @@ export function downloadSvgFile(
   URL.revokeObjectURL(url);
 }
 
-/**
- * Convierte el diagrama SVG a mapa de bits PNG en alta definición y lo descarga.
- */
 export function downloadPngFile(
   svgElement: SVGSVGElement,
   fileName: string = 'diagrama_automata.png',
@@ -193,7 +174,7 @@ export function downloadPngFile(
           }, 'image/png');
         } catch (innerError: unknown) {
           URL.revokeObjectURL(url);
-          const errorMsg = innerError instanceof Error ? innerError.message : 'Error inesperado al renderizar PNG.';
+          const errorMsg = innerError instanceof Error ? innerError.message : 'Error al renderizar imagen PNG.';
           reject(new Error(errorMsg));
         }
       };
@@ -205,9 +186,8 @@ export function downloadPngFile(
 
       image.src = url;
     } catch (error: unknown) {
-      const errorMsg = error instanceof Error ? error.message : 'Fallo en la preparación del archivo PNG.';
+      const errorMsg = error instanceof Error ? error.message : 'Error en la preparación del archivo PNG.';
       reject(new Error(errorMsg));
     }
   });
 }
-

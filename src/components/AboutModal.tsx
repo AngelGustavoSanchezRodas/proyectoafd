@@ -1,4 +1,3 @@
-// src/components/AboutModal.tsx
 interface AboutModalProps {
   isOpen: boolean;
   onClose: () => void;

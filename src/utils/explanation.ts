@@ -1,9 +1,5 @@
-// src/utils/explanation.ts
 import { DFA, SimulationState } from '../types/dfa';
 
-/**
- * Genera una explicación técnica y pedagógica en español del paso actual de la simulación.
- */
 export function getStepExplanation(simulation: SimulationState | null, dfa: DFA | null): string {
   if (!simulation || !dfa) return "Esperando inicialización del modelo.";
   const step = simulation.history[simulation.currentStepIndex];
@@ -13,7 +9,7 @@ export function getStepExplanation(simulation: SimulationState | null, dfa: DFA 
   }
   
   if (simulation.status === 'error') {
-    return `Excepción detectada: ${simulation.errorMessage}`;
+    return `Error: ${simulation.errorMessage}`;
   }
 
   if (simulation.status === 'rejected' && simulation.errorMessage) {
